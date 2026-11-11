@@ -252,7 +252,6 @@ tasks.withType<org.jetbrains.kotlin.gradle.tasks.KotlinCompile>().configureEach 
 // class is ever referenced.
 configurations.configureEach {
     exclude(group = "org.json", module = "json")
-    exclude(group = "com.google.firebase", module = "protolite-well-known-types")
 }
 
 dependencies {
@@ -293,7 +292,7 @@ dependencies {
 
     // Google Cast - only included in GMS flavor (not available in F-Droid/FOSS builds)
     "gmsImplementation"(libs.media3.cast)
-    "gmsImplementation"(platform("com.google.firebase:firebase-bom:33.5.1"))
+    "gmsImplementation"(platform("com.google.firebase:firebase-bom:35.1.0"))
     "gmsImplementation"("com.google.firebase:firebase-auth")
     "gmsImplementation"("com.google.firebase:firebase-firestore")
     "gmsImplementation"("androidx.credentials:credentials:1.3.0")
