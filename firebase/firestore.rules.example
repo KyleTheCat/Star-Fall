@@ -1,0 +1,17 @@
+// Example rules for the StarFall public profile (adapt to your project).
+// Profiles carry no rank and no email. Hiding a profile deletes the document,
+// so "exists" is the privacy check.
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    match /profiles/{uid} {
+      allow read: if request.auth != null && resource.data.visible == true;
+      allow create, update: if request.auth != null && request.auth.uid == uid
+                            && request.resource.data.visible == true;
+      allow delete: if request.auth != null && request.auth.uid == uid;
+    }
+    match /users/{uid} {
+      allow read, write: if request.auth != null && request.auth.uid == uid;
+    }
+  }
+}
