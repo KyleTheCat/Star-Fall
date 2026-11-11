@@ -252,6 +252,7 @@ tasks.withType<org.jetbrains.kotlin.gradle.tasks.KotlinCompile>().configureEach 
 // class is ever referenced.
 configurations.configureEach {
     exclude(group = "org.json", module = "json")
+    exclude(group = "com.google.firebase", module = "protolite-well-known-types")
 }
 
 dependencies {
