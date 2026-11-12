@@ -201,6 +201,7 @@ class StarFallOnline @Inject constructor(
         val token = requestIdToken(activityContext)
         val result = auth.signInWithCredential(GoogleAuthProvider.getCredential(token, null)).await()
         result.user?.let { saveProfile(it) }
+        Unit
     }.onFailure { Timber.e(it, "StarFall sign-in failed") }
         .recoverCatching { throw SignInException(classify(it), it) }
 
