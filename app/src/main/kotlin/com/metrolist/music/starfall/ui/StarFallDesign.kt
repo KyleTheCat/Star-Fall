@@ -32,9 +32,9 @@ object StarFallSpacing {
 val StarFallShapes = Shapes(
     extraSmall = RoundedCornerShape(8.dp),
     small = RoundedCornerShape(12.dp),
-    medium = RoundedCornerShape(20.dp),
-    large = RoundedCornerShape(28.dp),
-    extraLarge = RoundedCornerShape(32.dp),
+    medium = RoundedCornerShape(16.dp),
+    large = RoundedCornerShape(24.dp),
+    extraLarge = RoundedCornerShape(24.dp),
 )
 
 /** Inter (24pt static cuts), matching the design mockups. */
@@ -78,7 +78,7 @@ val StarFallTypography = base.copy(
 private fun TextStyle.withWeight(weight: FontWeight) = copy(fontWeight = weight, letterSpacing = 0.sp)
 
 /** Accent seed for the default StarFall theme (soft pink, matches the design mockups). */
-val StarFallPink = Color(0xFFF4A3BE)
+val StarFallPink = Color(0xFFF4B8D0)
 
 /** true = the mockup Home (chips, Quick picks, Recently played); false = the full Metrolist feed. */
 const val StarFallSimpleHome = true
@@ -88,33 +88,50 @@ const val StarFallUseSystemDynamicColor = false
 
 /**
  * Near-black warm surfaces with a pink accent, sampled from docs/mockups.
- * Surfaces: #0E0B0D (background), #1A1517 (cards, chips), #251E21 (raised, selected).
+ * Surfaces: #0D0C0E (background), #1C191D (cards), #242025 (raised). Accent #F4B8D0, rose #E8A2BE.
  */
 fun ColorScheme.starFallNight() = copy(
-    primary = Color(0xFFF4A3BE),
-    onPrimary = Color(0xFF3A1424),
-    primaryContainer = Color(0xFF251E21),
-    onPrimaryContainer = Color(0xFFF4A3BE),
-    secondary = Color(0xFFE2B8C6),
+    primary = Color(0xFFF4B8D0),
+    onPrimary = Color(0xFF1A1417),
+    primaryContainer = Color(0xFF2D2227),
+    onPrimaryContainer = Color(0xFFF4B8D0),
+    secondary = Color(0xFFE8A2BE),
     onSecondary = Color(0xFF3A1424),
-    secondaryContainer = Color(0xFF251E21),
-    onSecondaryContainer = Color(0xFFF2E9EC),
-    tertiary = Color(0xFFF4A3BE),
+    secondaryContainer = Color(0xFF2D2227),
+    onSecondaryContainer = Color(0xFFF5F3F5),
+    tertiary = Color(0xFFE8A2BE),
     onTertiary = Color(0xFF3A1424),
-    background = Color(0xFF0E0B0D),
-    onBackground = Color(0xFFF2E9EC),
-    surface = Color(0xFF0E0B0D),
-    onSurface = Color(0xFFF2E9EC),
-    surfaceVariant = Color(0xFF251E21),
-    onSurfaceVariant = Color(0xFFA99CA1),
-    surfaceTint = Color(0xFFF4A3BE),
+    background = Color(0xFF0D0C0E),
+    onBackground = Color(0xFFF5F3F5),
+    surface = Color(0xFF0D0C0E),
+    onSurface = Color(0xFFF5F3F5),
+    surfaceVariant = Color(0xFF242025),
+    onSurfaceVariant = Color(0xFF9E969C),
+    surfaceTint = Color(0xFFF4B8D0),
     outline = Color(0xFF6B6165),
     outlineVariant = Color(0xFF2E2629),
-    surfaceDim = Color(0xFF0E0B0D),
-    surfaceBright = Color(0xFF332A2E),
-    surfaceContainerLowest = Color(0xFF0A0809),
-    surfaceContainerLow = Color(0xFF141012),
-    surfaceContainer = Color(0xFF1A1517),
-    surfaceContainerHigh = Color(0xFF251E21),
-    surfaceContainerHighest = Color(0xFF2E2629),
+    surfaceDim = Color(0xFF0D0C0E),
+    surfaceBright = Color(0xFF2D2227),
+    surfaceContainerLowest = Color(0xFF0D0C0E),
+    surfaceContainerLow = Color(0xFF151317),
+    surfaceContainer = Color(0xFF1C191D),
+    surfaceContainerHigh = Color(0xFF242025),
+    surfaceContainerHighest = Color(0xFF2D2227),
+)
+
+/** Obsidian canvas and charcoal surfaces only; keeps the accent of a user-picked seed color. */
+fun ColorScheme.starFallSurfaces() = copy(
+    background = Color(0xFF0D0C0E),
+    onBackground = Color(0xFFF5F3F5),
+    surface = Color(0xFF0D0C0E),
+    onSurface = Color(0xFFF5F3F5),
+    surfaceVariant = Color(0xFF242025),
+    onSurfaceVariant = Color(0xFF9E969C),
+    outlineVariant = Color(0xFF2E2629),
+    surfaceDim = Color(0xFF0D0C0E),
+    surfaceContainerLowest = Color(0xFF0D0C0E),
+    surfaceContainerLow = Color(0xFF151317),
+    surfaceContainer = Color(0xFF1C191D),
+    surfaceContainerHigh = Color(0xFF242025),
+    surfaceContainerHighest = Color(0xFF2D2227),
 )

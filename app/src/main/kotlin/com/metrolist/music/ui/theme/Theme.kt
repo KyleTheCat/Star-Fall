@@ -29,6 +29,7 @@ import com.metrolist.music.starfall.ui.StarFallShapes
 import com.metrolist.music.starfall.ui.StarFallTypography
 import com.metrolist.music.starfall.ui.StarFallUseSystemDynamicColor
 import com.metrolist.music.starfall.ui.starFallNight
+import com.metrolist.music.starfall.ui.starFallSurfaces
 
 val DefaultThemeColor = Color(0xFFED5564)
 
@@ -60,7 +61,9 @@ fun MetrolistTheme(
 
     // Apply pureBlack modification if needed, similar to original logic
     val colorScheme = remember(baseColorScheme, pureBlack, darkTheme, isDefaultTheme) {
-        val themed = if (darkTheme && isDefaultTheme && !useSystemDynamicColor) baseColorScheme.starFallNight() else baseColorScheme
+        val themed = if (darkTheme && !useSystemDynamicColor) {
+            if (isDefaultTheme) baseColorScheme.starFallNight() else baseColorScheme.starFallSurfaces()
+        } else baseColorScheme
         if (darkTheme && pureBlack) {
             themed.pureBlack(true)
         } else {

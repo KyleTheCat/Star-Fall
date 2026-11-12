@@ -118,7 +118,7 @@ private fun calculateThumbnailDimensions(
     containerWidth: Dp,
     containerHeight: Dp = containerWidth,
     horizontalPadding: Dp = PlayerHorizontalPadding,
-    cornerRadius: Dp = ThumbnailCornerRadius,
+    cornerRadius: Dp = 8.dp,
     isLandscape: Boolean = false
 ): ThumbnailDimensions {
     // In landscape, use height as the constraining dimension for a square thumbnail
@@ -222,7 +222,7 @@ fun Thumbnail(
     val cropAlbumArt by rememberPreference(CropAlbumArtKey, false)
     val playerBackground by rememberEnumPreference(
         key = PlayerBackgroundStyleKey,
-        defaultValue = PlayerBackgroundStyle.DEFAULT
+        defaultValue = PlayerBackgroundStyle.BLUR
     )
     
     // Pre-calculate text color based on background style

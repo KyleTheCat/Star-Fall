@@ -187,7 +187,7 @@ fun LibraryPodcastsScreen(
                             containerColor = MaterialTheme.colorScheme.surface,
                         ),
                     onClick = onDeselect,
-                    shape = RoundedCornerShape(16.dp),
+                    shape = CircleShape,
                     border = null,
                     leadingIcon = {
                         Icon(

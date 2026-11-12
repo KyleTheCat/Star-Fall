@@ -193,7 +193,7 @@ fun AppearanceSettings(
     val (playerBackground, onPlayerBackgroundChange) =
         rememberEnumPreference(
             PlayerBackgroundStyleKey,
-            defaultValue = PlayerBackgroundStyle.DEFAULT,
+            defaultValue = PlayerBackgroundStyle.BLUR,
         )
 
     val (defaultOpenTab, onDefaultOpenTabChange) =

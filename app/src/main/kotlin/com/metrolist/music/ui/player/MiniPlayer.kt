@@ -381,9 +381,9 @@ private fun NewMiniPlayer(
                     .height(64.dp)
                     .offset { IntOffset(offsetXAnimatable.value.roundToInt(), 0) }
                     .pressScale(0.98f)
-                    .clip(RoundedCornerShape(32.dp))
+                    .clip(RoundedCornerShape(28.dp))
                     .background(color = backgroundColor)
-                    .border(1.dp, outlineColor.copy(alpha = 0.3f), RoundedCornerShape(32.dp))
+                    .border(1.dp, outlineColor.copy(alpha = 0.3f), RoundedCornerShape(28.dp))
                     .clickable(
                         interactionSource = interactionSource,
                         indication = LocalIndication.current,

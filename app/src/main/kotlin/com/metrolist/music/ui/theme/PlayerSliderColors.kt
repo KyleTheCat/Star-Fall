@@ -47,14 +47,15 @@ object PlayerSliderColors {
             }
         }
         
+        val active = if (playerBackground == PlayerBackgroundStyle.DEFAULT) activeColor else MaterialTheme.colorScheme.primary
         return SliderDefaults.colors(
-            activeTrackColor = activeColor,
-            activeTickColor = activeColor,
-            thumbColor = activeColor,
+            activeTrackColor = active,
+            activeTickColor = active,
+            thumbColor = active,
             inactiveTrackColor = inactiveTrackColor,
-            disabledActiveTrackColor = activeColor,
+            disabledActiveTrackColor = active,
             disabledInactiveTrackColor = inactiveTrackColor,
-            disabledThumbColor = activeColor
+            disabledThumbColor = active
         )
     }
 }

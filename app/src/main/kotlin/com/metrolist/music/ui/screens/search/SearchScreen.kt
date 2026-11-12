@@ -273,7 +273,7 @@ fun SearchScreen(
                 },
                 colors =
                     TopAppBarDefaults.topAppBarColors(
-                        containerColor = if (pureBlack) Color.Black else MaterialTheme.colorScheme.surfaceContainer,
+                        containerColor = if (pureBlack) Color.Black else MaterialTheme.colorScheme.background,
                     ),
             )
         },

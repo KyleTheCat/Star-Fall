@@ -350,6 +350,7 @@ fun LoginScreen(
                 modifier = Modifier.fillMaxSize().clip(RoundedCornerShape(topStart = 28.dp, topEnd = 28.dp)),
                 factory = { webViewContext ->
                     WebView(webViewContext).apply {
+                        setBackgroundColor(android.graphics.Color.parseColor("#0D0C0E"))
                         webViewClient =
                             object : WebViewClient() {
                                 override fun shouldOverrideUrlLoading(

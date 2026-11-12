@@ -236,7 +236,7 @@ fun BottomSheetPlayer(
 
     val playerBackground by rememberEnumPreference(
         key = PlayerBackgroundStyleKey,
-        defaultValue = PlayerBackgroundStyle.DEFAULT,
+        defaultValue = PlayerBackgroundStyle.BLUR,
     )
     val playerButtonsStyle by rememberEnumPreference(
         key = PlayerButtonsStyleKey,
@@ -870,7 +870,11 @@ fun BottomSheetPlayer(
                                         modifier =
                                             Modifier
                                                 .fillMaxSize()
-                                                .background(Color.Black.copy(alpha = 0.3f)),
+                                                .background(
+                                                    Brush.verticalGradient(
+                                                        listOf(Color.Black.copy(alpha = 0.25f), Color(0xFF0D0C0E)),
+                                                    ),
+                                                ),
                                     )
                                 }
                             }

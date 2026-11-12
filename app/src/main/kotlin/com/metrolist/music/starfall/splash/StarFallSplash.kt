@@ -44,8 +44,8 @@ import kotlin.random.Random
 import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.launch
 
-private val Navy = Color(0xFF0B1026)
-private val Deep = Color(0xFF05070F)
+private val Navy = Color(0xFF121013)
+private val Deep = Color(0xFF0D0C0E)
 
 private data class Twinkle(val x: Float, val y: Float, val r: Float, val phase: Float)
 
