@@ -1,0 +1,47 @@
+{
+  "project_info": {
+    "project_number": "513761514047",
+    "project_id": "starfall-46aff",
+    "storage_bucket": "starfall-46aff.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:513761514047:android:0cb5f95a8263f8e4a3de8a",
+        "android_client_info": {
+          "package_name": "com.kylethecat.starfall"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "513761514047-887c8c2bd81mk454ot3bc52ii0lclli2.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.kylethecat.starfall",
+            "certificate_hash": "24e76a3e5f320a0b9e96298d51c7ad8019d86496"
+          }
+        },
+        {
+          "client_id": "513761514047-nal69gupbfl4gnoisg76n7c24r11uqc7.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyBxqPSYLrLtwKMolwveRIzbzW447hxSiwU"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "513761514047-nal69gupbfl4gnoisg76n7c24r11uqc7.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
