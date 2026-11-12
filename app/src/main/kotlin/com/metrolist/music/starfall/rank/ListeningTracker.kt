@@ -13,6 +13,7 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.delay
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.isActive
 import kotlinx.coroutines.launch
 
@@ -24,11 +25,13 @@ class ListeningTracker @Inject constructor(
 ) {
     private val scope = CoroutineScope(SupervisorJob() + Dispatchers.Default)
     private var ticker: Job? = null
+    private var idleFlush: Job? = null
     private var pending = 0L
 
     fun setPlaying(playing: Boolean) = if (playing) startTicking() else stopTicking()
 
     private fun startTicking() {
+        idleFlush?.cancel()
         if (ticker?.isActive == true) return
         ticker = scope.launch {
             while (isActive) {
@@ -43,6 +46,12 @@ class ListeningTracker @Inject constructor(
         ticker?.cancel()
         ticker = null
         flush()
+        // Online totals are batched; push the remainder once playback has stayed stopped for a while.
+        idleFlush?.cancel()
+        idleFlush = scope.launch {
+            delay(IDLE_SYNC_MS)
+            runCatching { online.flushListening(store.totalSeconds.first()) }
+        }
     }
 
     private fun flush() {
@@ -51,9 +60,12 @@ class ListeningTracker @Inject constructor(
         pending = 0
         scope.launch {
             runCatching { store.add(seconds) }
-            runCatching { online.addListening(seconds) }
+            runCatching { online.addListening(seconds, store.totalSeconds.first()) }
         }
     }
 
-    private companion object { const val FLUSH_EVERY_SECONDS = 30L }
+    private companion object {
+        const val FLUSH_EVERY_SECONDS = 30L
+        const val IDLE_SYNC_MS = 60_000L
+    }
 }

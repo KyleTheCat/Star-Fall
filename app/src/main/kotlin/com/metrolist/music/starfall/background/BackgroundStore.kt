@@ -6,9 +6,7 @@
 package com.metrolist.music.starfall.background
 
 import android.content.Context
-import android.net.Uri
 import androidx.datastore.preferences.core.edit
-import androidx.datastore.preferences.core.longPreferencesKey
 import androidx.datastore.preferences.core.stringPreferencesKey
 import androidx.datastore.preferences.preferencesDataStore
 import dagger.hilt.android.qualifiers.ApplicationContext
@@ -22,24 +20,30 @@ import kotlinx.coroutines.withContext
 
 private val Context.starfallPrefs by preferencesDataStore("starfall_prefs")
 private val KEY_BG = stringPreferencesKey("background")
-private val KEY_VERSION = longPreferencesKey("custom_bg_version")
 
-data class BackgroundState(val option: BackgroundOption, val customVersion: Long)
+data class BackgroundState(val option: BackgroundOption)
 
 @Singleton
 class BackgroundStore @Inject constructor(@ApplicationContext private val ctx: Context) {
-    val customFile: File get() = File(ctx.filesDir, "starfall_bg_custom.jpg")
-
     val state: Flow<BackgroundState> = ctx.starfallPrefs.data.map {
-        BackgroundState(BackgroundOption.fromId(it[KEY_BG]), it[KEY_VERSION] ?: 0L)
+        // Unknown ids, including the removed "custom" image option, fall back to the default.
+        BackgroundState(BackgroundOption.fromId(it[KEY_BG]))
     }
 
     suspend fun apply(option: BackgroundOption) {
         ctx.starfallPrefs.edit { it[KEY_BG] = option.id }
     }
 
-    suspend fun importCustom(uri: Uri) = withContext(Dispatchers.IO) {
-        if (!BackgroundImporter.import(ctx, uri, customFile)) return@withContext
-        ctx.starfallPrefs.edit { it[KEY_BG] = BackgroundOption.CUSTOM.id; it[KEY_VERSION] = System.currentTimeMillis() }
+    /** Drops the imported image and its preferences left behind by earlier versions. */
+    suspend fun removeLegacyCustomImage() = withContext(Dispatchers.IO) {
+        File(ctx.filesDir, LEGACY_IMAGE).delete()
+        ctx.starfallPrefs.edit {
+            if (it[KEY_BG] == "custom") it[KEY_BG] = BackgroundOption.NEBULA.id
+            it.remove(stringPreferencesKey("custom_bg_version"))
+        }
+    }
+
+    private companion object {
+        const val LEGACY_IMAGE = "starfall_bg_custom.jpg"
     }
 }

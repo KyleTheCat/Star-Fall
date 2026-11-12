@@ -37,3 +37,6 @@ sealed interface ProfileLookup {
     data object Unavailable : ProfileLookup
     data class Found(val profile: PublicProfile) : ProfileLookup
 }
+
+/** Name state stored with the private account document. */
+data class RemoteNameState(val name: String?, val changedAtMs: Long)

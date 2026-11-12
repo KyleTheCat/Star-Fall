@@ -5,55 +5,110 @@
 
 package com.metrolist.music.starfall.rank
 
-import androidx.compose.animation.core.Animatable
-import androidx.compose.animation.core.Spring
-import androidx.compose.animation.core.spring
+import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.fadeOut
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material3.AlertDialog
-import androidx.compose.material3.CircularProgressIndicator
+import androidx.compose.material3.LinearProgressIndicator
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Icon
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.scale
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.hapticfeedback.HapticFeedbackType
 import androidx.compose.ui.platform.LocalHapticFeedback
+import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
+import com.metrolist.music.R
+import com.metrolist.music.starfall.ui.StarFallSpacing
 import kotlinx.coroutines.delay
 
+/** The tier's monochrome mark; tinted by the surrounding content color unless [tint] is given. */
 @Composable
-fun RankRing(totalSeconds: Long, modifier: Modifier = Modifier) {
+fun RankIcon(rank: Rank, modifier: Modifier = Modifier, size: Dp = 24.dp, tint: androidx.compose.ui.graphics.Color = androidx.compose.ui.graphics.Color.Unspecified) {
+    Icon(
+        painter = painterResource(rank.iconRes),
+        contentDescription = stringResource(R.string.starfall_rank_icon_cd, rank.label),
+        modifier = modifier.size(size),
+        tint = if (tint == androidx.compose.ui.graphics.Color.Unspecified) MaterialTheme.colorScheme.primary else tint,
+    )
+}
+
+/** Rank label, hours and progress to the next tier, with the full ladder one tap away. */
+@Composable
+fun RankProgress(totalSeconds: Long, modifier: Modifier = Modifier) {
     val hours = totalSeconds / 3600.0
     val rank = Rank.forHours(hours)
-    Column(modifier, horizontalAlignment = Alignment.CenterHorizontally, verticalArrangement = Arrangement.spacedBy(8.dp)) {
-        Box(contentAlignment = Alignment.Center) {
-            CircularProgressIndicator(progress = { rank.progress(hours) }, modifier = Modifier.size(160.dp), strokeWidth = 8.dp)
-            Text(rank.icon, style = MaterialTheme.typography.displayMedium)
+    var showLadder by remember { mutableStateOf(false) }
+    Column(modifier.fillMaxWidth(), verticalArrangement = Arrangement.spacedBy(StarFallSpacing.md)) {
+        Row(
+            Modifier.fillMaxWidth().heightIn(min = 48.dp).clip(MaterialTheme.shapes.medium).clickable { showLadder = !showLadder },
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.spacedBy(StarFallSpacing.md),
+        ) {
+            RankIcon(rank, size = 32.dp)
+            Column(Modifier.weight(1f)) {
+                Text(rank.label, style = MaterialTheme.typography.titleMedium)
+                Text(
+                    stringResource(R.string.starfall_hours_listened, "%.1f".format(hours.coerceAtMost(1000.0))),
+                    style = MaterialTheme.typography.bodySmall,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                )
+            }
         }
-        Text("${rank.label} · ${"%.1f".format(hours.coerceAtMost(1000.0))} h", style = MaterialTheme.typography.titleMedium)
-        rank.next?.let { Text("Next: ${it.label} at ${it.minHours.toInt()} h", style = MaterialTheme.typography.bodySmall) }
+        LinearProgressIndicator(
+            progress = { rank.progress(hours) },
+            modifier = Modifier.fillMaxWidth().height(6.dp).clip(CircleShape),
+            trackColor = MaterialTheme.colorScheme.surfaceContainerHighest,
+        )
+        val next = rank.next
+        Text(
+            if (next != null) stringResource(R.string.starfall_rank_next, next.label, next.minHours.toInt()) else stringResource(R.string.starfall_rank_max),
+            style = MaterialTheme.typography.bodySmall,
+            color = MaterialTheme.colorScheme.onSurfaceVariant,
+        )
+        AnimatedVisibility(showLadder, enter = fadeIn(), exit = fadeOut()) {
+            RankLadder(rank.tier)
+        }
     }
 }
 
 @Composable
 fun RankLadder(currentTier: Int, modifier: Modifier = Modifier) {
-    Column(modifier.fillMaxWidth(), verticalArrangement = Arrangement.spacedBy(6.dp)) {
+    Column(modifier.fillMaxWidth().padding(top = StarFallSpacing.sm), verticalArrangement = Arrangement.spacedBy(StarFallSpacing.sm)) {
+        Text(stringResource(R.string.starfall_rank_all), style = MaterialTheme.typography.labelLarge)
         Rank.entries.forEach { rank ->
             val reached = rank.tier <= currentTier
-            Row(horizontalArrangement = Arrangement.spacedBy(12.dp), verticalAlignment = Alignment.CenterVertically) {
-                Text(rank.icon, modifier = Modifier.scale(if (rank.tier == currentTier) 1.3f else 1f))
+            Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(StarFallSpacing.md)) {
+                RankIcon(
+                    rank,
+                    tint = if (reached) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.5f),
+                )
                 Text(
-                    "${rank.label} · ${rank.minHours.toInt()} h",
+                    stringResource(R.string.starfall_rank_row, rank.label, rank.minHours.toInt()),
+                    style = MaterialTheme.typography.bodyMedium,
+                    fontWeight = if (rank.tier == currentTier) FontWeight.Medium else FontWeight.Normal,
                     color = if (reached) MaterialTheme.colorScheme.onSurface else MaterialTheme.colorScheme.onSurfaceVariant,
                 )
             }
@@ -63,23 +118,20 @@ fun RankLadder(currentTier: Int, modifier: Modifier = Modifier) {
 
 @Composable
 fun RankUpCelebration(rank: Rank, onDone: () -> Unit) {
-    val scale = remember { Animatable(0.2f) }
     val haptics = LocalHapticFeedback.current
     LaunchedEffect(rank) {
         haptics.performHapticFeedback(HapticFeedbackType.LongPress)
-        scale.animateTo(1.4f, spring(Spring.DampingRatioMediumBouncy))
-        scale.animateTo(1f)
-        delay(2_000)
+        delay(4_000)
         onDone()
     }
     AlertDialog(
         onDismissRequest = onDone,
-        confirmButton = { TextButton(onClick = onDone) { Text("Nice") } },
-        title = { Text("Rank up!") },
+        confirmButton = { TextButton(onClick = onDone) { Text(stringResource(R.string.starfall_ok)) } },
+        title = { Text(stringResource(R.string.starfall_rank_up_title)) },
         text = {
-            Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                Text(rank.icon, style = MaterialTheme.typography.displayLarge, modifier = Modifier.scale(scale.value).padding(16.dp))
-                Text("You are now a ${rank.label}")
+            Column(horizontalAlignment = Alignment.CenterHorizontally, modifier = Modifier.fillMaxWidth()) {
+                RankIcon(rank, size = 64.dp, modifier = Modifier.padding(StarFallSpacing.lg))
+                Text(stringResource(R.string.starfall_rank_up_body, rank.label))
             }
         },
     )

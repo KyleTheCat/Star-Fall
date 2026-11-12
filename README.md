@@ -42,7 +42,7 @@ StarFall is a free, open-source YouTube Music client for Android written in Kotl
 
 **StarFall extras**
 - Falling-star launch animation and space-themed branding
-- Animated space backgrounds (Nebula Drift, Starfield Night, Aurora Orbit, Solar Flare, Lunar Eclipse, Galaxy Spiral, Deep Space Void, Comet Trail) or your own image
+- Animated space backgrounds (Nebula Drift, Starfield Night, Aurora Orbit, Solar Flare, Lunar Eclipse, Galaxy Spiral, Deep Space Void, Comet Trail)
 - Swipe gestures and spring-physics micro-interactions across lists, cards and the player
 
 ## Ranks
@@ -64,7 +64,7 @@ Every second of *active playback* counts towards your total listening time. Time
 | 11 | ⚛️ Neutron Star | 800 h |
 | 12 | ⚫ Black Hole | 950 h |
 
-Reaching a new tier triggers a celebration animation. Your rank is shown in **Rank and profile**, on the leaderboard and on your profile. It is always derived from listening hours, so a visited profile shows the same tier you would calculate yourself.
+Reaching a new tier triggers a celebration animation. Your rank is shown on your **Profile** (tap your avatar at the top right of Home), on the leaderboard and in search results. It is always derived from listening hours, so a visited profile shows the same tier you would calculate yourself.
 
 ## Weekly leaderboard
 
@@ -77,14 +77,14 @@ Reaching a new tier triggers a celebration animation. Your rank is shown in **Ra
 
 ## Public profile
 
-Showcase yourself to other listeners from **Settings → Rank and profile → Profile**:
+Tap your avatar at the top right of **Home** to open your profile. It combines your rank, account, leaderboard and public profile in one place:
 
 - Total listening hours, plus songs and artists listened to (on your own profile)
-- Your current rank
-- A custom biography
+- Your current rank with progress to the next tier
+- A display name (editable once every 7 days) and a biography
 - Favourite playlists and other showcases
 
-Tap a leaderboard entry to visit that listener's profile. Under **Settings → Privacy → Show my public profile** you can switch your profile off completely; when it is off, nobody else can open it and your published profile data is removed.
+Find other listeners with the **StarFall profiles** chip in Search (prefix search by name), or tap a leaderboard entry, to visit their profile. Under **Settings → Privacy → Show my public profile** you can switch your profile off completely; when it is off, you disappear from search, nobody else can open it and your published profile data is removed. Your email is never published.
 
 > [!NOTE]
 > The public profile and leaderboard need the Google Play (`gms`) build with a Firebase project configured (`app/google-services.json`). The `foss` and `izzy` builds keep rank and profile editing fully on-device.
@@ -171,7 +171,7 @@ StarFall is licensed under GPL-3.0, see [LICENSE](LICENSE) and [NOTICE.md](NOTIC
   <img src="assets/blacksmith-powered.png" alt="CI powered by Blacksmith" width="280" />
 </a>
 
-<h3>I'm also thank the entire open-source community! For every library, tool, and API that powers this project.</h3>
+<h3>We also thank the entire open-source community! For every library, tool, and API that powers this project.</h3>
 
 </div>
 
@@ -185,5 +185,4 @@ This project is **not affiliated with, funded, authorized, endorsed by, or in an
 
 All trademarks, service marks, and intellectual property rights referenced in this project belong to their respective owners.
 
-KyleTheCat is here!
 </div>

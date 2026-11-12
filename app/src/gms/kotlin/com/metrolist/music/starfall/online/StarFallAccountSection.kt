@@ -9,24 +9,26 @@ import android.content.Context
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
-import androidx.compose.material3.Button
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.heightIn
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Switch
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
+import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
-import androidx.compose.ui.unit.dp
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import androidx.navigation.NavController
 import com.metrolist.music.R
 import com.metrolist.music.starfall.rank.RankStore
+import com.metrolist.music.starfall.ui.StarFallSpacing
 import dagger.hilt.android.lifecycle.HiltViewModel
 import javax.inject.Inject
 import kotlinx.coroutines.ExperimentalCoroutinesApi
@@ -49,14 +51,14 @@ class StarFallAccountViewModel @Inject constructor(
     val optIn = online.user
         .flatMapLatest { u -> if (u == null) flowOf(false) else online.observeOptIn(u.uid) }
         .stateIn(viewModelScope, SharingStarted.Eagerly, false)
-    val error = MutableStateFlow<String?>(null)
+    val problem = MutableStateFlow<SignInProblem?>(null)
 
     fun signIn(context: Context) {
         viewModelScope.launch {
-            error.value = null
+            problem.value = null
             online.signIn(context)
                 .onSuccess { store.raiseTo(online.mergeTotals(store.totalSeconds.first())) }
-                .onFailure { error.value = it.message ?: it.javaClass.simpleName }
+                .onFailure { problem.value = (it as? SignInException)?.problem ?: SignInProblem.Other }
         }
     }
 
@@ -67,34 +69,47 @@ class StarFallAccountViewModel @Inject constructor(
 @Composable
 fun StarFallAccountSection(navController: NavController, vm: StarFallAccountViewModel = hiltViewModel()) {
     if (!vm.available) {
-        Text(stringResource(R.string.starfall_online_unavailable))
+        Text(
+            stringResource(R.string.starfall_sign_in_not_configured),
+            style = MaterialTheme.typography.bodyMedium,
+            color = MaterialTheme.colorScheme.onSurfaceVariant,
+        )
         return
     }
     val user by vm.user.collectAsState()
     val optIn by vm.optIn.collectAsState()
-    val error by vm.error.collectAsState()
+    val problem by vm.problem.collectAsState()
     val context = LocalContext.current
-    Column(horizontalAlignment = Alignment.CenterHorizontally, verticalArrangement = Arrangement.spacedBy(12.dp)) {
-        val current = user
-        if (current == null) {
+    Column(Modifier.fillMaxWidth(), verticalArrangement = Arrangement.spacedBy(StarFallSpacing.md)) {
+        if (user == null) {
             StarFallSignInCard(
                 label = stringResource(R.string.starfall_sign_in),
                 prompt = stringResource(R.string.starfall_sign_in_prompt),
                 onClick = { vm.signIn(context) },
             )
+            // A dismissed account picker is not an error worth showing.
+            problemText(problem)?.let {
+                Text(it, color = MaterialTheme.colorScheme.error, style = MaterialTheme.typography.bodySmall)
+            }
         } else {
-            Text(current.displayName ?: "Listener", style = MaterialTheme.typography.titleMedium)
-            Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(12.dp)) {
-                Text(stringResource(R.string.starfall_join_leaderboard))
+            Row(
+                Modifier.fillMaxWidth().heightIn(min = 48.dp),
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.spacedBy(StarFallSpacing.md),
+            ) {
+                Text(stringResource(R.string.starfall_join_leaderboard), Modifier.weight(1f))
                 Switch(checked = optIn, onCheckedChange = vm::setOptIn)
             }
-            Button(onClick = { navController.navigate("starfall/leaderboard") }) {
-                Text(stringResource(R.string.starfall_view_leaderboard))
-            }
-            OutlinedButton(onClick = vm::signOut) { Text(stringResource(R.string.starfall_sign_out)) }
-        }
-        error?.let {
-            Text("${stringResource(R.string.starfall_sign_in_failed)}: $it", color = MaterialTheme.colorScheme.error, style = MaterialTheme.typography.bodySmall)
+            TextButton(onClick = vm::signOut, Modifier.heightIn(min = 48.dp)) { Text(stringResource(R.string.starfall_sign_out)) }
         }
     }
+}
+
+@Composable
+private fun problemText(problem: SignInProblem?): String? = when (problem) {
+    null, SignInProblem.Cancelled -> null
+    SignInProblem.NotConfigured -> stringResource(R.string.starfall_sign_in_not_configured)
+    SignInProblem.Network -> stringResource(R.string.starfall_sign_in_error_network)
+    SignInProblem.NoAccount -> stringResource(R.string.starfall_sign_in_error_no_account)
+    SignInProblem.Other -> stringResource(R.string.starfall_sign_in_error_generic)
 }

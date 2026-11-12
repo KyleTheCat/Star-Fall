@@ -16,10 +16,7 @@ enum class BackgroundOption(val id: String, @StringRes val title: Int, @StringRe
     ECLIPSE("eclipse", R.string.starfall_bg_eclipse, R.string.starfall_bg_eclipse_desc),
     GALAXY("galaxy", R.string.starfall_bg_galaxy, R.string.starfall_bg_galaxy_desc),
     VOID("void", R.string.starfall_bg_void, R.string.starfall_bg_void_desc),
-    COMET("comet", R.string.starfall_bg_comet, R.string.starfall_bg_comet_desc),
-    CUSTOM("custom", R.string.starfall_bg_custom, R.string.starfall_bg_custom_desc);
-
-    val isWeb: Boolean get() = this != CUSTOM
+    COMET("comet", R.string.starfall_bg_comet, R.string.starfall_bg_comet_desc);
 
     companion object {
         fun fromId(id: String?): BackgroundOption = entries.firstOrNull { it.id == id } ?: NEBULA

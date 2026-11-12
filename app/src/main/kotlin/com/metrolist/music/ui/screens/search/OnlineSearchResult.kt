@@ -66,6 +66,7 @@ import androidx.compose.ui.unit.dp
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.SavedStateHandle
 import com.metrolist.music.LocalNavController
+import com.metrolist.innertube.YouTube
 import com.metrolist.innertube.YouTube.SearchFilter.Companion.FILTER_ALBUM
 import com.metrolist.innertube.YouTube.SearchFilter.Companion.FILTER_ARTIST
 import com.metrolist.innertube.YouTube.SearchFilter.Companion.FILTER_COMMUNITY_PLAYLIST
@@ -97,6 +98,8 @@ import com.metrolist.music.extensions.toMediaItem
 import com.metrolist.music.models.toMediaMetadata
 import com.metrolist.music.playback.queues.ListQueue
 import com.metrolist.music.playback.queues.YouTubeQueue
+import com.metrolist.music.starfall.profile.ProfileSearchViewModel
+import com.metrolist.music.starfall.profile.StarFallProfileResults
 import com.metrolist.music.ui.component.ChipsRow
 import com.metrolist.music.ui.component.EmptyPlaceholder
 import com.metrolist.music.ui.component.HideOnScrollFAB
@@ -116,6 +119,9 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 
 @OptIn(ExperimentalFoundationApi::class, ExperimentalMaterial3Api::class)
+/** Local sentinel for the StarFall profile chip; it is never sent to YouTube Music. */
+private val STARFALL_PROFILES_FILTER = YouTube.SearchFilter("starfall_profiles")
+
 @Composable
 fun OnlineSearchResult(
     viewModel: OnlineSearchViewModel = hiltViewModel(),
@@ -211,6 +217,8 @@ fun OnlineSearchResult(
     }
 
     val searchFilter by viewModel.filter.collectAsStateWithLifecycle()
+    val profileSearch: ProfileSearchViewModel = hiltViewModel()
+    var starfallProfiles by rememberSaveable { mutableStateOf(false) }
     val searchSummary = viewModel.summaryPage
     val itemsPage by remember(searchFilter) {
         derivedStateOf {
@@ -471,13 +479,19 @@ fun OnlineSearchResult(
                             FILTER_PODCAST to stringResource(R.string.filter_podcasts),
                             FILTER_EPISODE to stringResource(R.string.filter_episodes),
                             FILTER_PROFILE to stringResource(R.string.filter_profiles),
-                        )
+                        ) + if (profileSearch.available) {
+                            listOf(STARFALL_PROFILES_FILTER to stringResource(R.string.starfall_search_profiles))
+                        } else {
+                            emptyList()
+                        }
 
                 ChipsRow(
                     chips = visibleChips,
-                    currentValue = searchFilter,
+                    currentValue = if (starfallProfiles) STARFALL_PROFILES_FILTER else searchFilter,
                     onValueUpdate = {
-                        if (viewModel.filter.value != it) {
+                        // The StarFall chip is local: it must never reach the YouTube search filter.
+                        starfallProfiles = it == STARFALL_PROFILES_FILTER
+                        if (!starfallProfiles && viewModel.filter.value != it) {
                             viewModel.filter.value = it
                         }
                         coroutineScope.launch {
@@ -487,70 +501,78 @@ fun OnlineSearchResult(
                     modifier = Modifier.fillMaxWidth(),
                 )
 
-                LazyColumn(
-                    state = lazyListState,
-                    modifier = Modifier.fillMaxWidth(),
-                ) {
-                    if (searchFilter == null) {
-                        searchSummary?.summaries?.forEach { summary ->
-                            item {
-                                NavigationTitle(summary.title)
-                            }
+                if (starfallProfiles) {
+                    StarFallProfileResults(
+                        query = decodedQuery,
+                        onOpen = { navController.navigate("starfall/profile/$it") },
+                        modifier = Modifier.fillMaxWidth(),
+                    )
+                } else {
+                    LazyColumn(
+                        state = lazyListState,
+                        modifier = Modifier.fillMaxWidth(),
+                    ) {
+                        if (searchFilter == null) {
+                            searchSummary?.summaries?.forEach { summary ->
+                                item {
+                                    NavigationTitle(summary.title)
+                                }
 
-                            itemsIndexed(
-                                items = summary.items,
-                                key = { index, item -> "${summary.title}/${item.id}/$index" },
-                                itemContent = { index, item -> ytItemContent(item) },
-                            )
-                        }
-
-                        if (searchSummary?.summaries?.isEmpty() == true) {
-                            item {
-                                EmptyPlaceholder(
-                                    icon = R.drawable.search,
-                                    text = stringResource(R.string.no_results_found),
+                                itemsIndexed(
+                                    items = summary.items,
+                                    key = { index, item -> "${summary.title}/${item.id}/$index" },
+                                    itemContent = { index, item -> ytItemContent(item) },
                                 )
                             }
-                        }
-                    } else {
-                        items(
-                            items = itemsPage?.items.orEmpty().distinctBy { it.id },
-                            key = { "filtered_${it.id}" },
-                            itemContent = ytItemContent,
-                        )
 
-                        if (itemsPage?.continuation != null) {
-                            item(key = "loading") {
+                            if (searchSummary?.summaries?.isEmpty() == true) {
+                                item {
+                                    EmptyPlaceholder(
+                                        icon = R.drawable.search,
+                                        text = stringResource(R.string.no_results_found),
+                                    )
+                                }
+                            }
+                        } else {
+                            items(
+                                items = itemsPage?.items.orEmpty().distinctBy { it.id },
+                                key = { "filtered_${it.id}" },
+                                itemContent = ytItemContent,
+                            )
+
+                            if (itemsPage?.continuation != null) {
+                                item(key = "loading") {
+                                    ShimmerHost {
+                                        repeat(3) {
+                                            ListItemPlaceHolder()
+                                        }
+                                    }
+                                }
+                            }
+
+                            if (itemsPage?.items?.isEmpty() == true) {
+                                item {
+                                    EmptyPlaceholder(
+                                        icon = R.drawable.search,
+                                        text = stringResource(R.string.no_results_found),
+                                    )
+                                }
+                            }
+                        }
+
+                        if (searchFilter == null && searchSummary == null || searchFilter != null && itemsPage == null) {
+                            item {
                                 ShimmerHost {
-                                    repeat(3) {
+                                    repeat(8) {
                                         ListItemPlaceHolder()
                                     }
                                 }
                             }
                         }
 
-                        if (itemsPage?.items?.isEmpty() == true) {
-                            item {
-                                EmptyPlaceholder(
-                                    icon = R.drawable.search,
-                                    text = stringResource(R.string.no_results_found),
-                                )
-                            }
+                        item(key = "bottom_spacer") {
+                            Spacer(modifier = Modifier.height(MiniPlayerHeight + MiniPlayerBottomSpacing + NavigationBarHeight))
                         }
-                    }
-
-                    if (searchFilter == null && searchSummary == null || searchFilter != null && itemsPage == null) {
-                        item {
-                            ShimmerHost {
-                                repeat(8) {
-                                    ListItemPlaceHolder()
-                                }
-                            }
-                        }
-                    }
-
-                    item(key = "bottom_spacer") {
-                        Spacer(modifier = Modifier.height(MiniPlayerHeight + MiniPlayerBottomSpacing + NavigationBarHeight))
                     }
                 }
             }

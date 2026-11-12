@@ -5,30 +5,32 @@
 
 package com.metrolist.music.starfall.rank
 
+import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.ExperimentalLayoutApi
 import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.rememberScrollState
-import androidx.compose.foundation.shape.CircleShape
-import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.AssistChip
 import androidx.compose.material3.Checkbox
 import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.FilledTonalButton
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
@@ -39,6 +41,7 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -46,36 +49,47 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
-import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.navigation.NavController
 import coil3.compose.AsyncImage
 import com.metrolist.music.LocalDatabase
-import com.metrolist.music.starfall.profile.ProfileStatsRow
 import com.metrolist.music.R
+import com.metrolist.music.starfall.online.StarFallAccountSection
 import com.metrolist.music.starfall.profile.MAX_BIO
 import com.metrolist.music.starfall.profile.MAX_GENRES
 import com.metrolist.music.starfall.profile.MAX_PLAYLISTS
-import com.metrolist.music.starfall.profile.ProfileIdentity
+import com.metrolist.music.starfall.profile.NameChangeResult
+import com.metrolist.music.starfall.profile.NameLock
+import com.metrolist.music.starfall.profile.ProfileAvatar
 import com.metrolist.music.starfall.profile.ProfileLookup
 import com.metrolist.music.starfall.profile.ProfileSettings
+import com.metrolist.music.starfall.profile.ProfileStatsRow
 import com.metrolist.music.starfall.profile.ProfileViewModel
 import com.metrolist.music.starfall.profile.PublicProfile
 import com.metrolist.music.starfall.profile.ShowcaseItem
 import com.metrolist.music.starfall.profile.VisitedProfileViewModel
-import com.metrolist.music.starfall.ui.StarFallCard
-import com.metrolist.music.starfall.ui.StarFallSectionTitle
+import com.metrolist.music.starfall.profile.nameLockText
+import com.metrolist.music.starfall.ui.StarFallSpacing
+import kotlinx.coroutines.launch
 
-/** Your own profile, with editing. The rank shown is derived from listening hours. */
+/** Your profile: avatar, name, bio, rank progress, leaderboard entry and account controls, in one place. */
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun StarFallProfileScreen(navController: NavController, vm: ProfileViewModel = hiltViewModel()) {
+fun StarFallProfileScreen(
+    navController: NavController,
+    vm: ProfileViewModel = hiltViewModel(),
+    rankVm: RankViewModel = hiltViewModel(),
+) {
     val settings by vm.settings.collectAsState()
     val total by vm.totalSeconds.collectAsState()
     val identity by vm.identity.collectAsState()
+    val name by vm.displayName.collectAsState()
+    val celebrate by rankVm.celebrate.collectAsState()
     var editing by remember { mutableStateOf(false) }
+    val lockMs = remember(settings.lastNameChangeAt) { NameLock.remainingMs(settings.lastNameChangeAt, System.currentTimeMillis()) }
 
     Column(Modifier.fillMaxSize()) {
         TopAppBar(
@@ -85,36 +99,77 @@ fun StarFallProfileScreen(navController: NavController, vm: ProfileViewModel = h
                     Icon(painterResource(R.drawable.arrow_back), stringResource(R.string.cd_back))
                 }
             },
-            actions = {
-                IconButton(onClick = { editing = true }) {
-                    Icon(painterResource(R.drawable.edit), stringResource(R.string.starfall_edit_profile))
-                }
-            },
         )
         Column(
-            Modifier.verticalScroll(rememberScrollState()).padding(horizontal = 16.dp, vertical = 8.dp),
-            verticalArrangement = Arrangement.spacedBy(16.dp),
+            Modifier.verticalScroll(rememberScrollState()).padding(horizontal = StarFallSpacing.lg),
+            horizontalAlignment = Alignment.CenterHorizontally,
+            verticalArrangement = Arrangement.spacedBy(StarFallSpacing.lg),
         ) {
-            VisibilityBanner(settings.visible, online = vm.onlineAvailable, signedIn = identity != null) {
-                navController.navigate("settings/privacy")
-            }
-            ProfileStatsRow(hours = total / 3600.0)
-            ProfileBody(
-                name = identity?.name ?: stringResource(R.string.starfall_you),
-                avatar = identity?.avatar,
-                hours = total / 3600.0,
-                bio = settings.bio,
-                genres = settings.genres,
-                playlists = settings.playlists,
-                onPlaylist = { navController.navigate("online_playlist/${it.id}") },
+            ProfileAvatar(
+                name = name,
+                imageUrl = identity?.avatar,
+                size = 88.dp,
+                contentDescription = stringResource(R.string.starfall_avatar_signed_out),
             )
-            OutlinedButton(onClick = { navController.navigate("starfall/rank") }, modifier = Modifier.fillMaxWidth()) {
-                Text(stringResource(R.string.starfall_rank_title))
+            Column(horizontalAlignment = Alignment.CenterHorizontally, verticalArrangement = Arrangement.spacedBy(StarFallSpacing.xs)) {
+                Text(name ?: stringResource(R.string.starfall_you), style = MaterialTheme.typography.headlineSmall)
+                if (lockMs > 0) {
+                    Text(
+                        stringResource(R.string.starfall_name_locked, nameLockText(lockMs)),
+                        style = MaterialTheme.typography.bodySmall,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    )
+                }
             }
-            Spacer(Modifier.height(24.dp))
+            if (settings.bio.isNotBlank()) {
+                Text(settings.bio, style = MaterialTheme.typography.bodyLarge, textAlign = TextAlign.Center)
+            }
+            if (settings.genres.isNotEmpty()) GenreChips(settings.genres)
+            FilledTonalButton(onClick = { editing = true }, Modifier.fillMaxWidth().heightIn(min = 48.dp)) {
+                Text(stringResource(R.string.starfall_edit_profile))
+            }
+
+            ProfileStatsRow(hours = total / 3600.0)
+
+            Panel { RankProgress(total) }
+
+            if (vm.onlineAvailable && identity != null) {
+                Panel(onClick = { navController.navigate("starfall/leaderboard") }) {
+                    Row(Modifier.fillMaxWidth().heightIn(min = 48.dp), verticalAlignment = Alignment.CenterVertically) {
+                        Text(stringResource(R.string.starfall_leaderboard), Modifier.weight(1f), style = MaterialTheme.typography.titleMedium)
+                        Icon(painterResource(R.drawable.navigate_next), stringResource(R.string.starfall_leaderboard_cd))
+                    }
+                }
+            }
+
+            StarFallAccountSection(navController)
+
+            Text(
+                stringResource(
+                    when {
+                        !settings.visible -> R.string.starfall_profile_hidden_desc
+                        !vm.onlineAvailable -> R.string.starfall_profile_local_only
+                        identity == null -> R.string.starfall_profile_sign_in_to_share
+                        else -> R.string.starfall_profile_visible_desc
+                    },
+                ),
+                Modifier.fillMaxWidth().clickable { navController.navigate("settings/privacy") }.heightIn(min = 48.dp),
+                style = MaterialTheme.typography.bodySmall,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+            )
+
+            if (settings.playlists.isNotEmpty()) {
+                PlaylistRow(
+                    title = stringResource(R.string.starfall_your_playlists),
+                    playlists = settings.playlists,
+                    onPlaylist = { navController.navigate("online_playlist/${it.id}") },
+                )
+            }
+            Spacer(Modifier.height(StarFallSpacing.xl))
         }
     }
-    if (editing) EditProfileDialog(settings, onDismiss = { editing = false }, vm = vm)
+    if (editing) EditProfileDialog(settings, lockMs, onDismiss = { editing = false }, vm = vm)
+    celebrate?.let { RankUpCelebration(it, onDone = rankVm::dismissCelebration) }
 }
 
 /** Someone else's profile. Private/hidden profiles show a plain notice, never data. */
@@ -132,7 +187,7 @@ fun StarFallVisitedProfileScreen(navController: NavController, vm: VisitedProfil
             },
         )
         when (val l = lookup) {
-            ProfileLookup.Loading -> Text(stringResource(R.string.starfall_profile_loading), Modifier.padding(24.dp))
+            ProfileLookup.Loading -> Text(stringResource(R.string.starfall_profile_loading), Modifier.padding(StarFallSpacing.xl))
             ProfileLookup.Private -> Notice(R.string.starfall_profile_private)
             ProfileLookup.Unavailable -> Notice(R.string.starfall_online_unavailable)
             is ProfileLookup.Found -> VisitedBody(l.profile, navController)
@@ -142,138 +197,108 @@ fun StarFallVisitedProfileScreen(navController: NavController, vm: VisitedProfil
 
 @Composable
 private fun Notice(res: Int) {
-    StarFallCard(Modifier.fillMaxWidth().padding(16.dp)) {
-        Text(stringResource(res), Modifier.padding(24.dp), style = MaterialTheme.typography.bodyLarge)
-    }
+    Text(stringResource(res), Modifier.padding(StarFallSpacing.xl), style = MaterialTheme.typography.bodyLarge)
 }
 
 @Composable
 private fun VisitedBody(profile: PublicProfile, navController: NavController) {
+    val rank = Rank.forHours(profile.hours)
     Column(
-        Modifier.verticalScroll(rememberScrollState()).padding(horizontal = 16.dp, vertical = 8.dp),
-        verticalArrangement = Arrangement.spacedBy(16.dp),
+        Modifier.verticalScroll(rememberScrollState()).padding(horizontal = StarFallSpacing.lg),
+        horizontalAlignment = Alignment.CenterHorizontally,
+        verticalArrangement = Arrangement.spacedBy(StarFallSpacing.lg),
     ) {
-        ProfileBody(
-            name = profile.name,
-            avatar = profile.avatar,
-            hours = profile.hours,
-            bio = profile.bio,
-            genres = profile.genres,
-            playlists = profile.playlists,
-            onPlaylist = { navController.navigate("online_playlist/${it.id}") },
-        )
-    }
-}
-
-@Composable
-private fun VisibilityBanner(visible: Boolean, online: Boolean, signedIn: Boolean, onOpenPrivacy: () -> Unit) {
-    StarFallCard(Modifier.fillMaxWidth(), onClick = onOpenPrivacy) {
-        Column(Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(4.dp)) {
-            Text(
-                stringResource(if (visible) R.string.starfall_profile_visible else R.string.starfall_profile_hidden),
-                style = MaterialTheme.typography.titleSmall,
-                fontWeight = FontWeight.SemiBold,
-            )
-            Text(
-                stringResource(
-                    when {
-                        !visible -> R.string.starfall_profile_hidden_desc
-                        !online -> R.string.starfall_profile_local_only
-                        !signedIn -> R.string.starfall_profile_sign_in_to_share
-                        else -> R.string.starfall_profile_visible_desc
-                    },
-                ),
-                style = MaterialTheme.typography.bodySmall,
-                color = MaterialTheme.colorScheme.onSurfaceVariant,
-            )
-        }
-    }
-}
-
-@OptIn(androidx.compose.foundation.layout.ExperimentalLayoutApi::class)
-@Composable
-private fun ProfileBody(
-    name: String,
-    avatar: String?,
-    hours: Double,
-    bio: String,
-    genres: List<String>,
-    playlists: List<ShowcaseItem>,
-    onPlaylist: (ShowcaseItem) -> Unit,
-) {
-    StarFallCard(Modifier.fillMaxWidth()) {
-        Column(Modifier.fillMaxWidth().padding(24.dp), horizontalAlignment = Alignment.CenterHorizontally) {
-            if (avatar != null) {
-                AsyncImage(avatar, null, Modifier.size(96.dp).clip(CircleShape), contentScale = ContentScale.Crop)
-            } else {
-                Icon(painterResource(R.drawable.account), null, Modifier.size(96.dp))
+        ProfileAvatar(profile.name, profile.avatar, 88.dp, contentDescription = stringResource(R.string.starfall_avatar_of, profile.name))
+        Column(horizontalAlignment = Alignment.CenterHorizontally, verticalArrangement = Arrangement.spacedBy(StarFallSpacing.xs)) {
+            Text(profile.name, style = MaterialTheme.typography.headlineSmall)
+            Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(StarFallSpacing.sm)) {
+                RankIcon(rank, size = 20.dp)
+                Text(rank.label, style = MaterialTheme.typography.titleSmall, color = MaterialTheme.colorScheme.primary)
             }
-            Spacer(Modifier.height(12.dp))
-            Text(name, style = MaterialTheme.typography.headlineSmall, fontWeight = FontWeight.SemiBold)
-            Spacer(Modifier.height(4.dp))
-            ProfileRankLabel(hours)
-            Spacer(Modifier.height(4.dp))
-            Text(
-                stringResource(R.string.starfall_hours_listened, "%.1f".format(hours)),
-                style = MaterialTheme.typography.titleMedium,
-                color = MaterialTheme.colorScheme.primary,
+        }
+        if (profile.bio.isNotBlank()) Text(profile.bio, style = MaterialTheme.typography.bodyLarge, textAlign = TextAlign.Center)
+        if (profile.genres.isNotEmpty()) GenreChips(profile.genres)
+        if (profile.playlists.isNotEmpty()) {
+            PlaylistRow(
+                title = stringResource(R.string.starfall_playlists_section),
+                playlists = profile.playlists,
+                onPlaylist = { navController.navigate("online_playlist/${it.id}") },
             )
         }
+        Spacer(Modifier.height(StarFallSpacing.xl))
     }
-    StarFallSectionTitle(stringResource(R.string.starfall_bio))
-    StarFallCard(Modifier.fillMaxWidth()) {
-        Text(
-            bio.ifBlank { stringResource(R.string.starfall_bio_empty) },
-            Modifier.padding(20.dp),
-            style = MaterialTheme.typography.bodyLarge,
-            color = if (bio.isBlank()) MaterialTheme.colorScheme.onSurfaceVariant else MaterialTheme.colorScheme.onSurface,
-        )
+}
+
+/** One flat surface level; never nested inside another panel. */
+@Composable
+private fun Panel(onClick: (() -> Unit)? = null, content: @Composable () -> Unit) {
+    val base = Modifier.fillMaxWidth().clip(MaterialTheme.shapes.medium).background(MaterialTheme.colorScheme.surfaceContainerLow)
+    Column((if (onClick != null) base.clickable(onClick = onClick) else base).padding(StarFallSpacing.lg)) { content() }
+}
+
+@OptIn(ExperimentalLayoutApi::class)
+@Composable
+private fun GenreChips(genres: List<String>) {
+    FlowRow(horizontalArrangement = Arrangement.spacedBy(StarFallSpacing.sm, Alignment.CenterHorizontally), verticalArrangement = Arrangement.spacedBy(StarFallSpacing.xs)) {
+        genres.forEach { AssistChip(onClick = {}, label = { Text(it) }) }
     }
-    if (genres.isNotEmpty()) {
-        StarFallSectionTitle(stringResource(R.string.starfall_favorite_genres))
-        FlowRow(horizontalArrangement = Arrangement.spacedBy(8.dp), verticalArrangement = Arrangement.spacedBy(4.dp)) {
-            genres.forEach { AssistChip(onClick = {}, label = { Text(it) }) }
-        }
-    }
-    StarFallSectionTitle(stringResource(R.string.starfall_favorite_playlists))
-    if (playlists.isEmpty()) {
-        Text(stringResource(R.string.starfall_playlists_empty), color = MaterialTheme.colorScheme.onSurfaceVariant, modifier = Modifier.padding(horizontal = 4.dp))
-    } else {
-        LazyRow(horizontalArrangement = Arrangement.spacedBy(12.dp)) {
+}
+
+@Composable
+private fun PlaylistRow(title: String, playlists: List<ShowcaseItem>, onPlaylist: (ShowcaseItem) -> Unit) {
+    Column(Modifier.fillMaxWidth(), verticalArrangement = Arrangement.spacedBy(StarFallSpacing.md)) {
+        Text(title, style = MaterialTheme.typography.titleMedium)
+        LazyRow(horizontalArrangement = Arrangement.spacedBy(StarFallSpacing.md)) {
             items(playlists, key = { it.id }) { item ->
-                StarFallCard(Modifier.size(width = 140.dp, height = 176.dp), onClick = { onPlaylist(item) }, corner = 20.dp) {
-                    Column(Modifier.padding(10.dp)) {
-                        AsyncImage(
-                            item.thumbnail,
-                            null,
-                            Modifier.fillMaxWidth().height(120.dp).clip(RoundedCornerShape(14.dp)),
-                            contentScale = ContentScale.Crop,
-                        )
-                        Spacer(Modifier.height(6.dp))
-                        Text(item.title, maxLines = 1, overflow = TextOverflow.Ellipsis, style = MaterialTheme.typography.labelLarge)
-                    }
+                Column(Modifier.size(width = 108.dp, height = 140.dp).clickable { onPlaylist(item) }, verticalArrangement = Arrangement.spacedBy(StarFallSpacing.sm)) {
+                    AsyncImage(
+                        item.thumbnail,
+                        null,
+                        Modifier.size(108.dp).clip(MaterialTheme.shapes.small),
+                        contentScale = ContentScale.Crop,
+                    )
+                    Text(item.title, maxLines = 1, overflow = TextOverflow.Ellipsis, style = MaterialTheme.typography.labelLarge)
                 }
             }
         }
     }
 }
 
-@OptIn(androidx.compose.foundation.layout.ExperimentalLayoutApi::class)
 @Composable
-private fun EditProfileDialog(settings: ProfileSettings, onDismiss: () -> Unit, vm: ProfileViewModel) {
+private fun EditProfileDialog(settings: ProfileSettings, lockMs: Long, onDismiss: () -> Unit, vm: ProfileViewModel) {
+    val initialName = remember { settings.customName ?: vm.displayName.value.orEmpty() }
+    var name by remember { mutableStateOf(initialName) }
     var bio by remember { mutableStateOf(settings.bio) }
     var genres by remember { mutableStateOf(settings.genres.joinToString(", ")) }
+    var nameError by remember { mutableStateOf<String?>(null) }
     val picked = remember { mutableStateListOf<ShowcaseItem>().apply { addAll(settings.playlists) } }
+    val scope = rememberCoroutineScope()
     val database = LocalDatabase.current
     val allPlaylists by database.playlistsByCreateDateAsc().collectAsState(initial = emptyList())
     // Only YouTube Music playlists can be opened by other listeners.
     val playlists = allPlaylists.filter { it.playlist.browseId != null }
+    val locked = lockMs > 0
+    val invalidText = stringResource(R.string.starfall_name_invalid, NameLock.MAX_NAME)
+    val lockedText = stringResource(R.string.starfall_name_locked_dialog, nameLockText(lockMs))
+    val failedText = stringResource(R.string.starfall_name_error)
 
     AlertDialog(
         onDismissRequest = onDismiss,
         title = { Text(stringResource(R.string.starfall_edit_profile)) },
         text = {
-            Column(Modifier.verticalScroll(rememberScrollState()), verticalArrangement = Arrangement.spacedBy(12.dp)) {
+            Column(Modifier.verticalScroll(rememberScrollState()), verticalArrangement = Arrangement.spacedBy(StarFallSpacing.md)) {
+                OutlinedTextField(
+                    value = name,
+                    onValueChange = { name = it.take(NameLock.MAX_NAME); nameError = null },
+                    label = { Text(stringResource(R.string.starfall_display_name)) },
+                    supportingText = {
+                        Text(nameError ?: if (locked) stringResource(R.string.starfall_name_locked, nameLockText(lockMs)) else stringResource(R.string.starfall_name_hint, NameLock.MAX_NAME))
+                    },
+                    isError = nameError != null,
+                    enabled = !locked,
+                    singleLine = true,
+                    modifier = Modifier.fillMaxWidth(),
+                )
                 OutlinedTextField(
                     value = bio,
                     onValueChange = { bio = it.take(MAX_BIO) },
@@ -294,7 +319,7 @@ private fun EditProfileDialog(settings: ProfileSettings, onDismiss: () -> Unit, 
                 playlists.forEach { p ->
                     val id = p.playlist.browseId ?: return@forEach
                     val checked = picked.any { it.id == id }
-                    Row(verticalAlignment = Alignment.CenterVertically) {
+                    Row(Modifier.heightIn(min = 48.dp), verticalAlignment = Alignment.CenterVertically) {
                         Checkbox(
                             checked = checked,
                             onCheckedChange = { on ->
@@ -312,22 +337,21 @@ private fun EditProfileDialog(settings: ProfileSettings, onDismiss: () -> Unit, 
         },
         confirmButton = {
             TextButton(onClick = {
-                vm.setBio(bio)
-                vm.setGenres(genres.split(','))
-                vm.setPlaylists(picked.toList())
-                onDismiss()
+                scope.launch {
+                    val result = if (locked || name.trim() == initialName.trim()) NameChangeResult.Unchanged else runCatching { vm.changeName(name) }.getOrNull()
+                    when (result) {
+                        null -> { nameError = failedText; return@launch }
+                        NameChangeResult.Invalid -> { nameError = invalidText; return@launch }
+                        is NameChangeResult.Locked -> { nameError = lockedText; return@launch }
+                        else -> Unit
+                    }
+                    vm.setBio(bio)
+                    vm.setGenres(genres.split(','))
+                    vm.setPlaylists(picked.toList())
+                    onDismiss()
+                }
             }) { Text(stringResource(R.string.starfall_save)) }
         },
         dismissButton = { TextButton(onClick = onDismiss) { Text(stringResource(android.R.string.cancel)) } },
-    )
-}
-
-@Composable
-private fun ProfileRankLabel(hours: Double) {
-    val rank = Rank.forHours(hours)
-    Text(
-        "${rank.icon} ${rank.label}",
-        style = MaterialTheme.typography.titleSmall,
-        color = MaterialTheme.colorScheme.onSurfaceVariant,
     )
 }

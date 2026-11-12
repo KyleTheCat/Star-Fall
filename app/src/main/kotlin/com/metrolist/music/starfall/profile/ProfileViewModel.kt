@@ -15,6 +15,7 @@ import javax.inject.Inject
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
@@ -32,6 +33,39 @@ class ProfileViewModel @Inject constructor(
     val identity: StateFlow<ProfileIdentity?> =
         online.identity.stateIn(viewModelScope, SharingStarted.Eagerly, null)
     val onlineAvailable: Boolean = online.available
+
+    /** Custom name when set, otherwise the Google name; null when signed out and unnamed. */
+    val displayName: StateFlow<String?> = combine(settings, identity) { s, id -> s.customName ?: id?.name }
+        .stateIn(viewModelScope, SharingStarted.Eagerly, null)
+
+    init {
+        // After a reinstall the name and its lock live online; adopt them so the lock cannot be skipped.
+        viewModelScope.launch {
+            identity.collect { id ->
+                if (id == null) return@collect
+                runCatching { online.fetchNameState() }.getOrNull()?.let { store.adoptRemoteName(it.name, it.changedAtMs) }
+            }
+        }
+    }
+
+    /** Changes the display name at most once per 7 days; the online build also asks Firestore, which enforces it too. */
+    suspend fun changeName(raw: String): NameChangeResult {
+        val now = System.currentTimeMillis()
+        val current = settings.value
+        val check = NameLock.evaluate(displayName.value, current.lastNameChangeAt, raw, now)
+        if (check !is NameChangeResult.Changed) return check
+        if (identity.value != null) {
+            val saved = online.saveCustomName(check.name)
+            saved.exceptionOrNull()?.let { error ->
+                if (!online.isDenied(error)) throw error
+                runCatching { online.fetchNameState() }.getOrNull()?.let { store.adoptRemoteName(it.name, it.changedAtMs) }
+                return NameChangeResult.Locked(NameLock.remainingMs(store.settings.first().lastNameChangeAt, now))
+            }
+        }
+        val result = store.setDisplayName(check.name, now)
+        if (result is NameChangeResult.Changed) sync()
+        return result
+    }
 
     fun setBio(bio: String) = edit { store.setBio(bio) }
     fun setGenres(genres: List<String>) = edit { store.setGenres(genres) }

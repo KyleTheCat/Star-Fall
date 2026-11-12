@@ -1,17 +1,70 @@
-// Example rules for the StarFall public profile (adapt to your project).
-// Profiles carry no rank and no email. Hiding a profile deletes the document,
-// so "exists" is the privacy check.
+// Example rules for StarFall online features (adapt to your project).
+// Profiles carry no email. Hiding a profile deletes the document, so "exists" is the privacy check.
+//
+// Search queries must include whereEqualTo("visible", true) and orderBy("nameLower"), which needs this
+// composite index (create it from the link Firestore prints on the first query, or in the console):
+//   collection: profiles   fields: visible ASC, nameLower ASC
 rules_version = '2';
 service cloud.firestore {
   match /databases/{database}/documents {
-    match /profiles/{uid} {
-      allow read: if request.auth != null && resource.data.visible == true;
-      allow create, update: if request.auth != null && request.auth.uid == uid
-                            && request.resource.data.visible == true;
-      allow delete: if request.auth != null && request.auth.uid == uid;
+
+    function signedIn() { return request.auth != null; }
+    function isOwner(uid) { return signedIn() && request.auth.uid == uid; }
+    function validNameChange(data) {
+      return data.customName is string
+        && data.customName.size() > 0
+        && data.customName.size() <= 24
+        && data.lastNameChangeAt == request.time;
     }
+    function account(uid) { return get(/databases/$(database)/documents/users/$(uid)).data; }
+
+    match /profiles/{uid} {
+      // A single read, or a list query that is constrained to visible profiles.
+      allow get, list: if signedIn() && resource.data.visible == true;
+
+      // The published name must be the custom name stored in the private account document (if one
+      // exists), and nameLower must be its lowercase form so prefix search matches what is shown.
+      allow create, update: if isOwner(uid)
+        && request.resource.data.visible == true
+        && request.resource.data.displayName is string
+        && request.resource.data.displayName.size() > 0
+        && request.resource.data.displayName.size() <= 24
+        && request.resource.data.nameLower == request.resource.data.displayName.lower()
+        && !('email' in request.resource.data)
+        && (!('customName' in account(uid)) || request.resource.data.displayName == account(uid).customName);
+
+      allow delete: if isOwner(uid);
+    }
+
     match /users/{uid} {
-      allow read, write: if request.auth != null && request.auth.uid == uid;
+      allow read: if isOwner(uid);
+      allow delete: if isOwner(uid);
+
+      // The display name may change only once every 7 days. A name change must carry
+      // lastNameChangeAt == request.time, and is rejected unless request.time is at least 7 days
+      // after the stored lastNameChangeAt.
+      allow create: if isOwner(uid)
+        && (
+          !('customName' in request.resource.data)
+          || validNameChange(request.resource.data)
+        );
+
+      allow update: if isOwner(uid)
+        && (
+          // No name change: the name and its timestamp stay as stored.
+          (request.resource.data.get('customName', null) == resource.data.get('customName', null)
+            && request.resource.data.get('lastNameChangeAt', null) == resource.data.get('lastNameChangeAt', null))
+          // Name change: valid, stamped with the server time, and 7 days after the previous change.
+          || (validNameChange(request.resource.data)
+            && (resource.data.get('lastNameChangeAt', null) == null
+              || request.time >= resource.data.lastNameChangeAt + duration.value(7, 'd')))
+        );
+    }
+
+    match /weekly/{week}/entries/{uid} {
+      allow read: if signedIn();
+      allow create, update: if isOwner(uid);
+      allow delete: if isOwner(uid);
     }
   }
 }

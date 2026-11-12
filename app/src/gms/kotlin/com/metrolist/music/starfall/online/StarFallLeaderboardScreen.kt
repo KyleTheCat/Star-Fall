@@ -39,6 +39,7 @@ import androidx.lifecycle.viewModelScope
 import androidx.navigation.NavController
 import coil3.compose.AsyncImage
 import com.metrolist.music.R
+import com.metrolist.music.starfall.rank.RankIcon
 import com.metrolist.music.starfall.ui.SwipeActionRow
 import com.metrolist.music.starfall.ui.pressScale
 import dagger.hilt.android.lifecycle.HiltViewModel
@@ -107,7 +108,7 @@ private fun EntryRow(position: Int, entry: BoardEntry, highlight: Boolean, onCli
             AsyncImage(model = entry.avatar, contentDescription = null, modifier = Modifier.size(40.dp).clip(CircleShape))
             Text(entry.name, Modifier.weight(1f), maxLines = 1)
             Text("%.1f h".format(entry.hours))
-            Text(entry.rankIcon)
+            RankIcon(entry.rank)
         }
     }
 }

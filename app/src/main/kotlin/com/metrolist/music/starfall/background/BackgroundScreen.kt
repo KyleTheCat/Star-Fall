@@ -5,9 +5,6 @@
 
 package com.metrolist.music.starfall.background
 
-import androidx.activity.compose.rememberLauncherForActivityResult
-import androidx.activity.result.PickVisualMediaRequest
-import androidx.activity.result.contract.ActivityResultContracts.PickVisualMedia
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -48,7 +45,6 @@ fun BackgroundScreen(navController: NavController, vm: BackgroundViewModel = hil
     val options = BackgroundOption.entries
     val pager = rememberPagerState { options.size }
     val haptics = LocalHapticFeedback.current
-    val picker = rememberLauncherForActivityResult(PickVisualMedia()) { uri -> uri?.let(vm::importCustom) }
 
     Column(Modifier.fillMaxSize(), verticalArrangement = Arrangement.spacedBy(16.dp)) {
         TopAppBar(
@@ -71,12 +67,11 @@ fun BackgroundScreen(navController: NavController, vm: BackgroundViewModel = hil
         Button(
             onClick = {
                 haptics.performHapticFeedback(HapticFeedbackType.LongPress)
-                if (current == BackgroundOption.CUSTOM) picker.launch(PickVisualMediaRequest(PickVisualMedia.ImageOnly))
-                else vm.apply(current)
+                vm.apply(current)
             },
             modifier = Modifier.fillMaxWidth().padding(horizontal = 24.dp, vertical = 16.dp),
         ) {
-            Text(stringResource(if (current == BackgroundOption.CUSTOM) R.string.starfall_choose_image else R.string.starfall_apply))
+            Text(stringResource(R.string.starfall_apply))
         }
     }
 }
@@ -85,7 +80,7 @@ fun BackgroundScreen(navController: NavController, vm: BackgroundViewModel = hil
 private fun BackgroundCard(option: BackgroundOption, isActive: Boolean) {
     Card(shape = RoundedCornerShape(28.dp), modifier = Modifier.fillMaxSize()) {
         Box(Modifier.fillMaxSize()) {
-            if (option.isWeb) BackgroundWebView(option.id, Modifier.fillMaxSize().clip(RoundedCornerShape(28.dp)))
+            BackgroundWebView(option.id, Modifier.fillMaxSize().clip(RoundedCornerShape(28.dp)))
             Column(Modifier.align(Alignment.BottomStart).padding(20.dp)) {
                 Text(stringResource(option.title), style = MaterialTheme.typography.titleLarge)
                 val blurb = stringResource(option.blurb)

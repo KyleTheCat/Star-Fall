@@ -21,10 +21,9 @@ import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
 import com.metrolist.music.R
 
+/** Nothing to sign in to here; the profile screen already says the profile stays on this device. */
 @Composable
-fun StarFallAccountSection(navController: NavController) {
-    Text(stringResource(R.string.starfall_online_unavailable))
-}
+fun StarFallAccountSection(navController: NavController) = Unit
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable

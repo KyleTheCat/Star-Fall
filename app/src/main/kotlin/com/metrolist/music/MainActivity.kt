@@ -178,6 +178,7 @@ import com.metrolist.music.playback.MusicService
 import com.metrolist.music.playback.MusicService.MusicBinder
 import com.metrolist.music.playback.PlayerConnection
 import com.metrolist.music.playback.queues.YouTubeQueue
+import com.metrolist.music.starfall.profile.ProfileEntryButton
 import com.metrolist.music.ui.component.AccountSettingsDialog
 import com.metrolist.music.ui.component.AppNavigationBar
 import com.metrolist.music.ui.component.AppNavigationRail
@@ -544,7 +545,7 @@ class MainActivity : FragmentActivity() {
                         val notification =
                             NotificationCompat
                                 .Builder(this@MainActivity, "updates")
-                                .setSmallIcon(R.drawable.update)
+                                .setSmallIcon(R.drawable.small_icon)
                                 .setContentTitle(
                                     if (update.isKmp) {
                                         getString(R.string.kmp_upgrade_title, update.release.versionName)
@@ -1097,6 +1098,9 @@ class MainActivity : FragmentActivity() {
                                                         contentDescription = stringResource(R.string.together),
                                                     )
                                                 }
+                                            }
+                                            if (currentRoute == Screens.Home.route) {
+                                                ProfileEntryButton(onClick = { navController.navigate("starfall/me") })
                                             }
                                             IconButton(onClick = { showAccountDialog = true }) {
                                                 BadgedBox(badge = {

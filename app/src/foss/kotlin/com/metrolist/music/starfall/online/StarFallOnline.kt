@@ -7,7 +7,9 @@ package com.metrolist.music.starfall.online
 
 import com.metrolist.music.starfall.profile.ProfileIdentity
 import com.metrolist.music.starfall.profile.ProfileLookup
+import com.metrolist.music.starfall.profile.ProfilePage
 import com.metrolist.music.starfall.profile.ProfileSettings
+import com.metrolist.music.starfall.profile.RemoteNameState
 import javax.inject.Inject
 import javax.inject.Singleton
 import kotlinx.coroutines.flow.Flow
@@ -20,8 +22,13 @@ class StarFallOnline @Inject constructor() {
     val myUid: String? = null
     val identity: Flow<ProfileIdentity?> = flowOf(null)
 
-    suspend fun addListening(seconds: Long) = Unit
+    suspend fun addListening(seconds: Long, totalSeconds: Long) = Unit
+    suspend fun flushListening(totalSeconds: Long) = Unit
     suspend fun publishProfile(settings: ProfileSettings, totalSeconds: Long) = Unit
     suspend fun unpublishProfile() = Unit
     suspend fun loadProfile(uid: String): ProfileLookup = ProfileLookup.Unavailable
+    suspend fun saveCustomName(name: String): Result<Unit> = Result.success(Unit)
+    suspend fun fetchNameState(): RemoteNameState? = null
+    fun isDenied(t: Throwable) = false
+    suspend fun searchProfiles(prefix: String, after: Any?, limit: Int): ProfilePage = ProfilePage(emptyList(), null, true)
 }

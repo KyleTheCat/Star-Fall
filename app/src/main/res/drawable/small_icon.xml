@@ -1,17 +1,20 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- StarFall mark (falling star) as a single-color vector, used for notification small icons. -->
 <vector xmlns:android="http://schemas.android.com/apk/res/android"
-    android:height="200dp"
-    android:width="200dp"
-    android:viewportWidth="35.0"
-    android:viewportHeight="35.0">
-    <group
-        android:scaleX="0.7"
-        android:scaleY="0.7"
-        android:translateX="5.2"
-        android:translateY="5.3">
-        <path
-            android:fillColor="#00000000"
-            android:pathData="M11.7,17.037L5.907,22.83C5.517,23.22 5.517,23.853 5.907,24.244L11.493,29.83C11.883,30.22 12.517,30.22 12.907,29.83L18.907,23.83C19.095,23.642 19.2,23.388 19.2,23.122V6.004C19.2,5.115 20.274,4.668 20.905,5.295L30.2,14.536"
-            android:strokeColor="#FFFFFFFF"
-            android:strokeWidth="5.0" />
-    </group>
+    android:width="24dp"
+    android:height="24dp"
+    android:viewportWidth="50"
+    android:viewportHeight="50">
+    <path
+        android:fillColor="#FFFFFFFF"
+        android:pathData="M5,3L40,37L32,46Z" />
+    <path
+        android:fillColor="#FFFFFFFF"
+        android:pathData="M36,38m-7,0a7,7 0,1 1,14 0a7,7 0,1 1,-14 0" />
+    <path
+        android:fillColor="#FFFFFFFF"
+        android:pathData="M15,10m-2,0a2,2 0,1 1,4 0a2,2 0,1 1,-4 0" />
+    <path
+        android:fillColor="#FFFFFFFF"
+        android:pathData="M44,15m-1.6,0a1.6,1.6 0,1 1,3.2 0a1.6,1.6 0,1 1,-3.2 0" />
 </vector>

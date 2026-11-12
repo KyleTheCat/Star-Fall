@@ -66,7 +66,6 @@ import com.metrolist.music.starfall.background.BackgroundScreen
 import com.metrolist.music.starfall.background.StarFallBackdrop
 import com.metrolist.music.starfall.online.StarFallLeaderboardScreen
 import com.metrolist.music.starfall.rank.StarFallProfileScreen
-import com.metrolist.music.starfall.rank.StarFallRankScreen
 import com.metrolist.music.starfall.rank.StarFallVisitedProfileScreen
 import com.metrolist.music.utils.rememberEnumPreference
 import com.metrolist.music.utils.rememberPreference
@@ -368,12 +367,8 @@ fun NavGraphBuilder.navigationBuilder(
         BackgroundScreen(navController)
     }
 
-    composable("starfall/profile") {
+    composable("starfall/me") {
         StarFallProfileScreen(navController)
-    }
-
-    composable("starfall/rank") {
-        StarFallRankScreen(navController)
     }
 
     composable("starfall/profile/{uid}") {

@@ -472,7 +472,7 @@ class RecognitionForegroundService : Service() {
         actionTitle: String?,
     ) = NotificationCompat
         .Builder(this, CHANNEL_ID)
-        .setSmallIcon(R.drawable.ic_widget_mic)
+        .setSmallIcon(R.drawable.small_icon)
         .setContentTitle(title)
         .setContentText(contentText)
         .setPriority(NotificationCompat.PRIORITY_LOW)

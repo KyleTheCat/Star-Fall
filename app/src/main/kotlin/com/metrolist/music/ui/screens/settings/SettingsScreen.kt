@@ -82,18 +82,6 @@ fun SettingsScreen(
                     icon = painterResource(R.drawable.palette),
                     title = { Text(stringResource(R.string.appearance)) },
                     onClick = { navController.navigate("settings/appearance") }
-                ),
-                Material3SettingsItem(
-                    icon = painterResource(R.drawable.stats),
-                    title = { Text(stringResource(R.string.starfall_profile)) },
-                    description = { Text(stringResource(R.string.starfall_profile_desc)) },
-                    onClick = { navController.navigate("starfall/rank") }
-                ),
-                Material3SettingsItem(
-                    icon = painterResource(R.drawable.account),
-                    title = { Text(stringResource(R.string.starfall_my_profile)) },
-                    description = { Text(stringResource(R.string.starfall_my_profile_desc)) },
-                    onClick = { navController.navigate("starfall/profile") }
                 )
             )
         )
