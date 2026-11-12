@@ -67,25 +67,25 @@ fun RankProgress(totalSeconds: Long, modifier: Modifier = Modifier) {
             verticalAlignment = Alignment.CenterVertically,
             horizontalArrangement = Arrangement.spacedBy(StarFallSpacing.md),
         ) {
-            RankIcon(rank, size = 32.dp)
+            RankIcon(rank, size = 44.dp)
             Column(Modifier.weight(1f)) {
-                Text(rank.label, style = MaterialTheme.typography.titleMedium)
+                Text(rank.label, style = MaterialTheme.typography.titleLarge)
                 Text(
                     stringResource(R.string.starfall_hours_listened, "%.1f".format(hours.coerceAtMost(1000.0))),
-                    style = MaterialTheme.typography.bodySmall,
+                    style = MaterialTheme.typography.bodyLarge,
                     color = MaterialTheme.colorScheme.onSurfaceVariant,
                 )
             }
         }
         LinearProgressIndicator(
             progress = { rank.progress(hours) },
-            modifier = Modifier.fillMaxWidth().height(6.dp).clip(CircleShape),
-            trackColor = MaterialTheme.colorScheme.surfaceContainerHighest,
+            modifier = Modifier.fillMaxWidth().height(8.dp).clip(CircleShape),
+            trackColor = MaterialTheme.colorScheme.surfaceContainerHigh,
         )
         val next = rank.next
         Text(
             if (next != null) stringResource(R.string.starfall_rank_next, next.label, next.minHours.toInt()) else stringResource(R.string.starfall_rank_max),
-            style = MaterialTheme.typography.bodySmall,
+            style = MaterialTheme.typography.bodyMedium,
             color = MaterialTheme.colorScheme.onSurfaceVariant,
         )
         AnimatedVisibility(showLadder, enter = fadeIn(), exit = fadeOut()) {

@@ -22,9 +22,12 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.AssistChip
+import androidx.compose.material3.AssistChipDefaults
+import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Checkbox
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.FilledTonalButton
@@ -108,11 +111,11 @@ fun StarFallProfileScreen(
             ProfileAvatar(
                 name = name,
                 imageUrl = identity?.avatar,
-                size = 88.dp,
+                size = 116.dp,
                 contentDescription = stringResource(R.string.starfall_avatar_signed_out),
             )
             Column(horizontalAlignment = Alignment.CenterHorizontally, verticalArrangement = Arrangement.spacedBy(StarFallSpacing.xs)) {
-                Text(name ?: stringResource(R.string.starfall_you), style = MaterialTheme.typography.headlineSmall)
+                Text(name ?: stringResource(R.string.starfall_you), style = MaterialTheme.typography.headlineMedium)
                 if (lockMs > 0) {
                     Text(
                         stringResource(R.string.starfall_name_locked, nameLockText(lockMs)),
@@ -125,8 +128,16 @@ fun StarFallProfileScreen(
                 Text(settings.bio, style = MaterialTheme.typography.bodyLarge, textAlign = TextAlign.Center)
             }
             if (settings.genres.isNotEmpty()) GenreChips(settings.genres)
-            FilledTonalButton(onClick = { editing = true }, Modifier.fillMaxWidth().heightIn(min = 48.dp)) {
-                Text(stringResource(R.string.starfall_edit_profile))
+            FilledTonalButton(
+                onClick = { editing = true },
+                modifier = Modifier.fillMaxWidth().heightIn(min = 56.dp),
+                shape = RoundedCornerShape(32.dp),
+                colors = ButtonDefaults.filledTonalButtonColors(
+                    containerColor = MaterialTheme.colorScheme.surfaceContainerHigh,
+                    contentColor = MaterialTheme.colorScheme.onSurface,
+                ),
+            ) {
+                Text(stringResource(R.string.starfall_edit_profile), style = MaterialTheme.typography.titleMedium)
             }
 
             Panel { RankProgress(total) }
@@ -134,7 +145,7 @@ fun StarFallProfileScreen(
             if (vm.onlineAvailable && identity != null) {
                 Panel(onClick = { navController.navigate("starfall/leaderboard") }) {
                     Row(Modifier.fillMaxWidth().heightIn(min = 48.dp), verticalAlignment = Alignment.CenterVertically) {
-                        Text(stringResource(R.string.starfall_leaderboard), Modifier.weight(1f), style = MaterialTheme.typography.titleMedium)
+                        Text(stringResource(R.string.starfall_leaderboard), Modifier.weight(1f), style = MaterialTheme.typography.titleLarge)
                         Icon(painterResource(R.drawable.navigate_next), stringResource(R.string.starfall_leaderboard_cd))
                     }
                 }
@@ -206,9 +217,9 @@ private fun VisitedBody(profile: PublicProfile, navController: NavController) {
         horizontalAlignment = Alignment.CenterHorizontally,
         verticalArrangement = Arrangement.spacedBy(StarFallSpacing.lg),
     ) {
-        ProfileAvatar(profile.name, profile.avatar, 88.dp, contentDescription = stringResource(R.string.starfall_avatar_of, profile.name))
+        ProfileAvatar(profile.name, profile.avatar, 116.dp, contentDescription = stringResource(R.string.starfall_avatar_of, profile.name))
         Column(horizontalAlignment = Alignment.CenterHorizontally, verticalArrangement = Arrangement.spacedBy(StarFallSpacing.xs)) {
-            Text(profile.name, style = MaterialTheme.typography.headlineSmall)
+            Text(profile.name, style = MaterialTheme.typography.headlineMedium)
             Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(StarFallSpacing.sm)) {
                 RankIcon(rank, size = 20.dp)
                 Text(rank.label, style = MaterialTheme.typography.titleSmall, color = MaterialTheme.colorScheme.primary)
@@ -230,32 +241,40 @@ private fun VisitedBody(profile: PublicProfile, navController: NavController) {
 /** One flat surface level; never nested inside another panel. */
 @Composable
 private fun Panel(onClick: (() -> Unit)? = null, content: @Composable () -> Unit) {
-    val base = Modifier.fillMaxWidth().clip(MaterialTheme.shapes.medium).background(MaterialTheme.colorScheme.surfaceContainerLow)
-    Column((if (onClick != null) base.clickable(onClick = onClick) else base).padding(StarFallSpacing.lg)) { content() }
+    val base = Modifier.fillMaxWidth().clip(RoundedCornerShape(28.dp)).background(MaterialTheme.colorScheme.surfaceContainer)
+    Column((if (onClick != null) base.clickable(onClick = onClick) else base).padding(horizontal = StarFallSpacing.xl, vertical = StarFallSpacing.lg)) { content() }
 }
 
 @OptIn(ExperimentalLayoutApi::class)
 @Composable
 private fun GenreChips(genres: List<String>) {
     FlowRow(horizontalArrangement = Arrangement.spacedBy(StarFallSpacing.sm, Alignment.CenterHorizontally), verticalArrangement = Arrangement.spacedBy(StarFallSpacing.xs)) {
-        genres.forEach { AssistChip(onClick = {}, label = { Text(it) }) }
+        genres.forEach {
+            AssistChip(
+                onClick = {},
+                label = { Text(it, style = MaterialTheme.typography.titleSmall) },
+                shape = RoundedCornerShape(50),
+                colors = AssistChipDefaults.assistChipColors(containerColor = MaterialTheme.colorScheme.surfaceContainer),
+                border = null,
+            )
+        }
     }
 }
 
 @Composable
 private fun PlaylistRow(title: String, playlists: List<ShowcaseItem>, onPlaylist: (ShowcaseItem) -> Unit) {
     Column(Modifier.fillMaxWidth(), verticalArrangement = Arrangement.spacedBy(StarFallSpacing.md)) {
-        Text(title, style = MaterialTheme.typography.titleMedium)
+        Text(title, style = MaterialTheme.typography.headlineSmall)
         LazyRow(horizontalArrangement = Arrangement.spacedBy(StarFallSpacing.md)) {
             items(playlists, key = { it.id }) { item ->
-                Column(Modifier.size(width = 108.dp, height = 140.dp).clickable { onPlaylist(item) }, verticalArrangement = Arrangement.spacedBy(StarFallSpacing.sm)) {
+                Column(Modifier.size(width = 132.dp, height = 172.dp).clickable { onPlaylist(item) }, verticalArrangement = Arrangement.spacedBy(StarFallSpacing.sm)) {
                     AsyncImage(
                         item.thumbnail,
                         null,
-                        Modifier.size(108.dp).clip(MaterialTheme.shapes.small),
+                        Modifier.size(132.dp).clip(RoundedCornerShape(20.dp)).background(MaterialTheme.colorScheme.surfaceContainerHigh),
                         contentScale = ContentScale.Crop,
                     )
-                    Text(item.title, maxLines = 1, overflow = TextOverflow.Ellipsis, style = MaterialTheme.typography.labelLarge)
+                    Text(item.title, maxLines = 1, overflow = TextOverflow.Ellipsis, style = MaterialTheme.typography.bodyLarge)
                 }
             }
         }

@@ -32,7 +32,7 @@ fun StarFallSignInCard(
     onClick: () -> Unit,
     modifier: Modifier = Modifier,
 ) {
-    StarFallCard(modifier = modifier.fillMaxWidth(), onClick = onClick) {
+    StarFallCard(modifier = modifier.fillMaxWidth(), onClick = onClick, corner = 28.dp) {
         Row(
             modifier = Modifier.padding(StarFallSpacing.lg),
             verticalAlignment = Alignment.CenterVertically,
