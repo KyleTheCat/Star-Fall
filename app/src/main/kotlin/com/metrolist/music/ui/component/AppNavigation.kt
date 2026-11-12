@@ -7,6 +7,21 @@ package com.metrolist.music.ui.component
 
 import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.interaction.PressInteraction
+import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.WindowInsets
+import androidx.compose.foundation.layout.WindowInsetsSides
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.navigationBars
+import androidx.compose.foundation.layout.only
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.windowInsetsPadding
+import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.ui.Alignment
+import androidx.compose.ui.draw.clip
+import androidx.compose.ui.unit.dp
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
@@ -144,10 +159,21 @@ fun AppNavigationBar(
     val haptics = LocalHapticFeedback.current
     val viewConfiguration = LocalViewConfiguration.current
 
-    NavigationBar(
-        modifier = modifier,
-        containerColor = containerColor,
-        contentColor = contentColor
+    // Floating pill (docs/mockups). The outer modifier still sets the slot height, so the
+    // player sheet math in MainActivity is unchanged.
+    Box(
+        modifier = modifier
+            .padding(horizontal = 16.dp)
+            .windowInsetsPadding(WindowInsets.navigationBars.only(WindowInsetsSides.Bottom))
+            .padding(vertical = 8.dp),
+    ) {
+    Row(
+        verticalAlignment = Alignment.CenterVertically,
+        modifier = Modifier
+            .fillMaxSize()
+            .clip(RoundedCornerShape(32.dp))
+            .background(containerColor)
+            .padding(horizontal = 8.dp, vertical = 8.dp),
     ) {
         navigationItems.forEach { screen ->
             val isSelected = remember(currentRoute, screen.route) {
@@ -188,31 +214,32 @@ fun AppNavigationBar(
                 }
             }
 
-            NavigationBarItem(
-                selected = isSelected,
-                onClick = {
-                    if (!isSearchItem && !isHomeHoldItem) {
-                        onItemClick(screen, currentIsSelected)
-                    }
-                    // Long presses are handled via InteractionSource
-                },
-                interactionSource = interactionSource,
-                icon = {
-                    Icon(
-                        painter = painterResource(id = iconRes),
-                        contentDescription = stringResource(screen.titleId)
-                    )
-                },
-                label = if (!slimNav) {
-                    {
-                        Text(
-                            text = stringResource(screen.titleId),
-                            maxLines = 1,
-                            overflow = TextOverflow.Ellipsis
-                        )
-                    }
-                } else null
-            )
+            Box(
+                contentAlignment = Alignment.Center,
+                modifier = Modifier
+                    .weight(1f)
+                    .fillMaxSize()
+                    .clip(RoundedCornerShape(24.dp))
+                    .background(if (isSelected) MaterialTheme.colorScheme.surfaceContainerHigh else Color.Transparent)
+                    .clickable(
+                        interactionSource = interactionSource,
+                        indication = null,
+                    ) {
+                        if (!isSearchItem && !isHomeHoldItem) {
+                            onItemClick(screen, currentIsSelected)
+                        }
+                        // Long presses are handled via InteractionSource
+                    },
+            ) {
+                Text(
+                    text = stringResource(screen.titleId),
+                    style = MaterialTheme.typography.titleMedium,
+                    color = if (isSelected) MaterialTheme.colorScheme.onSurface else contentColor,
+                    maxLines = 1,
+                    overflow = TextOverflow.Ellipsis,
+                )
+            }
         }
+    }
     }
 }

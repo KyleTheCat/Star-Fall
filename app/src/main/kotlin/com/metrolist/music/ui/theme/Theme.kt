@@ -24,7 +24,7 @@ import com.materialkolor.PaletteStyle
 import com.materialkolor.dynamiccolor.ColorSpec
 import com.materialkolor.rememberDynamicColorScheme
 import com.materialkolor.score.Score
-import com.metrolist.music.starfall.ui.StarFallMint
+import com.metrolist.music.starfall.ui.StarFallPink
 import com.metrolist.music.starfall.ui.StarFallShapes
 import com.metrolist.music.starfall.ui.StarFallTypography
 import com.metrolist.music.starfall.ui.StarFallUseSystemDynamicColor
@@ -51,7 +51,7 @@ fun MetrolistTheme(
     } else {
         // Use materialKolor only when a specific seed color is provided
         rememberDynamicColorScheme(
-            seedColor = if (isDefaultTheme) StarFallMint else themeColor,
+            seedColor = if (isDefaultTheme) StarFallPink else themeColor,
             isDark = darkTheme,
             specVersion = ColorSpec.SpecVersion.SPEC_2025,
             style = PaletteStyle.TonalSpot // Keep existing style

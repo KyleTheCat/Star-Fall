@@ -1071,10 +1071,14 @@ class MainActivity : FragmentActivity() {
                                 Row {
                                     TopAppBar(
                                         title = {
-                                            Text(
-                                                text = currentTitleRes?.let { stringResource(it) } ?: "",
-                                                style = MaterialTheme.typography.titleLarge,
-                                            )
+                                            if (currentRoute == Screens.Home.route && com.metrolist.music.starfall.ui.StarFallSimpleHome) {
+                                                com.metrolist.music.starfall.home.StarFallTitle()
+                                            } else {
+                                                Text(
+                                                    text = currentTitleRes?.let { stringResource(it) } ?: "",
+                                                    style = MaterialTheme.typography.titleLarge,
+                                                )
+                                            }
                                         },
                                         actions = {
                                             if (showHistoryButton) {

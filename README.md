@@ -64,7 +64,7 @@ Every second of *active playback* counts towards your total listening time. Time
 | 11 | ⚛️ Neutron Star | 800 h |
 | 12 | ⚫ Black Hole | 950 h |
 
-Reaching a new tier triggers a celebration animation. Your rank is shown on your **Profile** (tap your avatar at the top right of Home), on the leaderboard and in search results. It is always derived from listening hours, so a visited profile shows the same tier you would calculate yourself.
+Reaching a new tier triggers a celebration animation. Your rank is shown in **Rank and profile**, on the leaderboard and on your profile. It is always derived from listening hours, so a visited profile shows the same tier you would calculate yourself.
 
 ## Weekly leaderboard
 
@@ -80,11 +80,11 @@ Reaching a new tier triggers a celebration animation. Your rank is shown on your
 Tap your avatar at the top right of **Home** to open your profile. It combines your rank, account, leaderboard and public profile in one place:
 
 - Total listening hours, plus songs and artists listened to (on your own profile)
-- Your current rank with progress to the next tier
-- A display name (editable once every 7 days) and a biography
+- Your current rank
+- A custom biography
 - Favourite playlists and other showcases
 
-Find other listeners with the **StarFall profiles** chip in Search (prefix search by name), or tap a leaderboard entry, to visit their profile. Under **Settings → Privacy → Show my public profile** you can switch your profile off completely; when it is off, you disappear from search, nobody else can open it and your published profile data is removed. Your email is never published.
+Tap a leaderboard entry to visit that listener's profile. Under **Settings → Privacy → Show my public profile** you can switch your profile off completely; when it is off, nobody else can open it and your published profile data is removed.
 
 > [!NOTE]
 > The public profile and leaderboard need the Google Play (`gms`) build with a Firebase project configured (`app/google-services.json`). The `foss` and `izzy` builds keep rank and profile editing fully on-device.

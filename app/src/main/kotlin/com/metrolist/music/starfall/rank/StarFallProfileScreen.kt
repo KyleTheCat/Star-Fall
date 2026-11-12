@@ -129,8 +129,6 @@ fun StarFallProfileScreen(
                 Text(stringResource(R.string.starfall_edit_profile))
             }
 
-            ProfileStatsRow(hours = total / 3600.0)
-
             Panel { RankProgress(total) }
 
             if (vm.onlineAvailable && identity != null) {

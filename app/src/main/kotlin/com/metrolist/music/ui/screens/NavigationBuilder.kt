@@ -80,7 +80,11 @@ fun NavGraphBuilder.navigationBuilder(
 ) {
     composable(Screens.Home.route) {
         StarFallBackdrop {
-            HomeScreen(snackbarHostState = snackbarHostState)
+            if (com.metrolist.music.starfall.ui.StarFallSimpleHome) {
+                com.metrolist.music.starfall.home.StarFallHomeScreen(snackbarHostState = snackbarHostState)
+            } else {
+                HomeScreen(snackbarHostState = snackbarHostState)
+            }
         }
     }
 

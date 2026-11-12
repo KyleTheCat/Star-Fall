@@ -343,4 +343,23 @@
     <string name="new_version_available">New version available</string>
     <string name="translation_models">Translation Models</string>
     <string name="clear_translation_models">Clear translation models</string>
+
+    <!-- StarFall settings -->
+    <string name="sf_settings_account">Account</string>
+    <string name="sf_settings_account_desc">Sign in and manage account sync</string>
+    <string name="sf_settings_stats">Listening stats</string>
+    <string name="sf_settings_stats_desc">Top songs, artists and history</string>
+    <string name="sf_settings_appearance">Appearance</string>
+    <string name="sf_settings_appearance_desc">Theme, layout and background</string>
+    <string name="sf_settings_playback">Playback</string>
+    <string name="sf_settings_playback_desc">Audio, crossfade, background play</string>
+    <string name="sf_settings_lyrics">Lyrics</string>
+    <string name="sf_settings_lyrics_desc">Providers and translation</string>
+    <string name="sf_settings_content">Content</string>
+    <string name="sf_settings_content_desc">Language and country</string>
+    <string name="sf_settings_behavior">Behavior</string>
+    <string name="sf_settings_behavior_desc">History, defaults and privacy</string>
+    <string name="sf_settings_storage">Storage</string>
+    <string name="sf_settings_storage_desc">Cache and downloads</string>
+    <string name="sf_settings_more">More</string>
 </resources>

@@ -431,18 +431,18 @@ private fun NewMiniPlayer(
                 verticalAlignment = Alignment.CenterVertically,
                 modifier = Modifier.fillMaxSize().padding(horizontal = 8.dp, vertical = 8.dp),
             ) {
-                // Play button with progress - isolated composable
-                NewMiniPlayerPlayButton(
-                    progressState = progressState,
-                    playbackState = playbackState,
-                    isCasting = isCasting,
-                    castHandler = castHandler,
-                    playerConnection = playerConnection,
-                    mediaMetadata = mediaMetadata,
-                    primaryColor = primaryColor,
-                    outlineColor = outlineColor,
-                    listenTogetherManager = listenTogetherManager,
-                )
+                // Rounded-square cover (docs/mockups)
+                mediaMetadata?.let { metadata ->
+                    val coverUrl = remember(metadata.thumbnailUrl) { metadata.thumbnailUrl?.resize(160, 160) }
+                    AsyncImage(
+                        model = coverUrl,
+                        contentDescription = null,
+                        contentScale = ContentScale.Crop,
+                        modifier = Modifier
+                            .size(48.dp)
+                            .clip(RoundedCornerShape(14.dp)),
+                    )
+                }
 
                 Spacer(modifier = Modifier.width(16.dp))
 
@@ -467,27 +467,18 @@ private fun NewMiniPlayer(
                     Spacer(modifier = Modifier.width(12.dp))
                 }
 
-// Subscribe button - isolated composable
-                mediaMetadata?.artists?.firstOrNull()?.id?.let { artistId ->
-                    SubscribeButton(
-                        artistId = artistId,
-                        metadata = mediaMetadata!!,
-                        primaryColor = primaryColor,
-                        outlineColor = outlineColor,
-                        onSurfaceColor = onSurfaceColor,
-                    )
-                }
-
-                Spacer(modifier = Modifier.width(8.dp))
-
-// Favorite button - isolated composable
-                mediaMetadata?.let { FavoriteButton(
-                    songId = it.id,
-                    errorColor = errorColor,
+                // Filled pink play/pause button with progress ring - isolated composable
+                NewMiniPlayerPlayButton(
+                    progressState = progressState,
+                    playbackState = playbackState,
+                    isCasting = isCasting,
+                    castHandler = castHandler,
+                    playerConnection = playerConnection,
+                    mediaMetadata = mediaMetadata,
+                    primaryColor = primaryColor,
                     outlineColor = outlineColor,
-                    onSurfaceColor = onSurfaceColor,
+                    listenTogetherManager = listenTogetherManager,
                 )
-                }
             }
         }
     }
@@ -555,14 +546,14 @@ private fun NewMiniPlayerPlayButton(
                     )
                 },
     ) {
-        // Thumbnail with play/pause overlay
+        // Filled circle with play / pause / replay (docs/mockups)
         Box(
             contentAlignment = Alignment.Center,
             modifier =
                 Modifier
                     .size(40.dp)
                     .clip(CircleShape)
-                    .border(1.dp, outlineColor.copy(alpha = 0.3f), CircleShape)
+                    .background(MaterialTheme.colorScheme.primary)
                     .clickable {
                         if (isListenTogetherGuest) {
                             playerConnection.toggleMute()
@@ -578,45 +569,23 @@ private fun NewMiniPlayerPlayButton(
                         }
                     },
         ) {
-            mediaMetadata?.let { metadata ->
-                val thumbnailUrl =
-                    remember(metadata.thumbnailUrl) {
-                        metadata.thumbnailUrl?.resize(120, 120)
-                    }
-                AsyncImage(
-                    model = thumbnailUrl,
-                    contentDescription = null,
-                    contentScale = ContentScale.Crop,
-                    modifier = Modifier.fillMaxSize().clip(CircleShape),
-                )
-            }
-
-            // Overlay for paused state or muted (guest)
-            if (isListenTogetherGuest && isMuted ||
-                (!isListenTogetherGuest && (!effectiveIsPlaying || playbackState == Player.STATE_ENDED))
-            ) {
-                Box(
-                    modifier =
-                        Modifier
-                            .fillMaxSize()
-                            .background(Color.Black.copy(alpha = 0.4f), CircleShape),
-                )
-                Icon(
-                    painter =
-                        painterResource(
-                            if (isListenTogetherGuest) {
-                                if (isMuted) R.drawable.volume_off else R.drawable.volume_up
-                            } else if (playbackState == Player.STATE_ENDED) {
-                                R.drawable.replay
-                            } else {
-                                R.drawable.play
-                            },
-                        ),
-                    contentDescription = null,
-                    tint = Color.White,
-                    modifier = Modifier.size(20.dp),
-                )
-            }
+            Icon(
+                painter =
+                    painterResource(
+                        if (isListenTogetherGuest) {
+                            if (isMuted) R.drawable.volume_off else R.drawable.volume_up
+                        } else if (playbackState == Player.STATE_ENDED) {
+                            R.drawable.replay
+                        } else if (effectiveIsPlaying) {
+                            R.drawable.pause
+                        } else {
+                            R.drawable.play
+                        },
+                    ),
+                contentDescription = null,
+                tint = MaterialTheme.colorScheme.onPrimary,
+                modifier = Modifier.size(22.dp),
+            )
         }
     }
 }

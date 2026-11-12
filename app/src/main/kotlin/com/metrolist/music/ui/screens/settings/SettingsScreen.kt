@@ -5,6 +5,15 @@
 
 package com.metrolist.music.ui.screens.settings
 
+import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.ui.Alignment
+import androidx.compose.ui.draw.clip
 import android.content.ActivityNotFoundException
 import android.content.Intent
 import android.os.Build
@@ -74,38 +83,67 @@ fun SettingsScreen(
             )
         )
 
-        // User Interface Section
-        Material3SettingsGroup(
-            title = stringResource(R.string.settings_section_ui),
-            items = listOf(
-                Material3SettingsItem(
-                    icon = painterResource(R.drawable.palette),
-                    title = { Text(stringResource(R.string.appearance)) },
-                    onClick = { navController.navigate("settings/appearance") }
-                )
-            )
+        // StarFall settings list (docs/mockups/5_settings_no_rank.png)
+        val starFallEntries = listOf(
+            Triple(R.drawable.account, R.string.sf_settings_account to R.string.sf_settings_account_desc, "account"),
+            Triple(R.drawable.stats, R.string.sf_settings_stats to R.string.sf_settings_stats_desc, "stats"),
+            Triple(R.drawable.palette, R.string.sf_settings_appearance to R.string.sf_settings_appearance_desc, "settings/appearance"),
+            Triple(R.drawable.play, R.string.sf_settings_playback to R.string.sf_settings_playback_desc, "settings/player"),
+            Triple(R.drawable.lyrics, R.string.sf_settings_lyrics to R.string.sf_settings_lyrics_desc, "settings/ai"),
+            Triple(R.drawable.language, R.string.sf_settings_content to R.string.sf_settings_content_desc, "settings/content"),
+            Triple(R.drawable.security, R.string.sf_settings_behavior to R.string.sf_settings_behavior_desc, "settings/privacy"),
+            Triple(R.drawable.storage, R.string.sf_settings_storage to R.string.sf_settings_storage_desc, "settings/storage"),
         )
+        starFallEntries.forEach { (icon, text, route) ->
+            Row(
+                verticalAlignment = Alignment.CenterVertically,
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .clip(RoundedCornerShape(20.dp))
+                    .clickable { navController.navigate(route) }
+                    .padding(vertical = 12.dp, horizontal = 4.dp),
+            ) {
+                Box(
+                    contentAlignment = Alignment.Center,
+                    modifier = Modifier
+                        .size(48.dp)
+                        .clip(CircleShape)
+                        .background(MaterialTheme.colorScheme.surfaceContainerHigh),
+                ) {
+                    Icon(
+                        painter = painterResource(icon),
+                        contentDescription = null,
+                        tint = MaterialTheme.colorScheme.primary,
+                        modifier = Modifier.size(22.dp),
+                    )
+                }
+                Column(Modifier.padding(start = 16.dp)) {
+                    Text(stringResource(text.first), style = MaterialTheme.typography.titleLarge)
+                    Text(
+                        stringResource(text.second),
+                        style = MaterialTheme.typography.bodyLarge,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    )
+                }
+            }
+        }
 
         Spacer(modifier = Modifier.height(16.dp))
 
-        // Player & Content Section (moved up and combined with content)
+        Text(
+            text = stringResource(R.string.sf_settings_more),
+            style = MaterialTheme.typography.labelLarge,
+            color = MaterialTheme.colorScheme.primary,
+            modifier = Modifier.padding(bottom = 8.dp, top = 8.dp),
+        )
+
+        // Integrations (Discord, Last.fm, Listen Together)
         Material3SettingsGroup(
-            title = stringResource(R.string.settings_section_player_content),
             items = listOf(
                 Material3SettingsItem(
-                    icon = painterResource(R.drawable.play),
-                    title = { Text(stringResource(R.string.player_and_audio)) },
-                    onClick = { navController.navigate("settings/player") }
-                ),
-                Material3SettingsItem(
-                    icon = painterResource(R.drawable.language),
-                    title = { Text(stringResource(R.string.content)) },
-                    onClick = { navController.navigate("settings/content") }
-                ),
-                Material3SettingsItem(
-                    icon = painterResource(R.drawable.translate),
-                    title = { Text(stringResource(R.string.ai_lyrics_translation)) },
-                    onClick = { navController.navigate("settings/ai") }
+                    icon = painterResource(R.drawable.integration),
+                    title = { Text(stringResource(R.string.integrations)) },
+                    onClick = { navController.navigate("settings/integrations") }
                 )
             )
         )
@@ -128,29 +166,10 @@ fun SettingsScreen(
             Spacer(modifier = Modifier.height(16.dp))
         }
         
-        // Privacy & Security Section
-        Material3SettingsGroup(
-            title = stringResource(R.string.settings_section_privacy),
-            items = listOf(
-                Material3SettingsItem(
-                    icon = painterResource(R.drawable.security),
-                    title = { Text(stringResource(R.string.privacy)) },
-                    onClick = { navController.navigate("settings/privacy") }
-                )
-            )
-        )
-
-        Spacer(modifier = Modifier.height(16.dp))
-
         // Storage & Data Section
         Material3SettingsGroup(
             title = stringResource(R.string.settings_section_storage),
             items = listOf(
-                Material3SettingsItem(
-                    icon = painterResource(R.drawable.storage),
-                    title = { Text(stringResource(R.string.storage)) },
-                    onClick = { navController.navigate("settings/storage") }
-                ),
                 Material3SettingsItem(
                     icon = painterResource(R.drawable.restore),
                     title = { Text(stringResource(R.string.backup_restore)) },
